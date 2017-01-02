@@ -145,11 +145,11 @@ class Main extends egret.DisplayObjectContainer {
     private tileX : number;
     private tileY : number;
     private tileSize = 64;
-    private ifFindAWay : boolean = false;
+    public ifFindAWay : boolean = false;
     private currentPath : number = 0;
     private movingTime = 32;
     private ifOnGoal = false;
-    private ifStartMove = false;
+    public ifStartMove = false;
     private playerx : number;
     private playery : number;
     private playerBitX : number;
@@ -173,8 +173,11 @@ class Main extends egret.DisplayObjectContainer {
     private shoes : Armor;
     private weaponJewel : Jewel;
     private armorJewel : Jewel;
+    
+    private commandList : CommandList;
 
     private userPanel : UserPanel;
+
     //private equipmentInformationPanel : EquipmentInformationPanel;
 
     
@@ -189,6 +192,8 @@ class Main extends egret.DisplayObjectContainer {
         // this.Stage01Background.height = stageH;
         // this.Stage01Background.x = -stageH * 3.1 / 2;
         // this.Stage01Background.y = 0;
+        this.commandList = new CommandList();
+
         this.Player  = new Person();
         var stageW:number = this.stage.stageWidth;
         var stageH:number = this.stage.stageHeight;
@@ -311,7 +316,7 @@ class Main extends egret.DisplayObjectContainer {
         //RES.getResAsync("description_json", this.startAnimation, this)
             this.stage.addEventListener(egret.TouchEvent.TOUCH_BEGIN,(e : egret.TouchEvent)=>{
             //egret.Tween.removeTweens(this.Player.PersonBitmap);
-            this.ifStartMove = true;
+            //this.ifStartMove = true;
             //var tempTile : Tile;
             this.playerx = Math.floor(this.Player.PersonBitmap.x / this.tileSize);
             this.playery = Math.floor(this.Player.PersonBitmap.y / this.tileSize);
@@ -333,7 +338,7 @@ class Main extends egret.DisplayObjectContainer {
             this.map01.endTile = this.map01.getTile(this.tileX,this.tileY);
             this.ifFindAWay = this.astar.findPath(this.map01);
             if(this.ifFindAWay){
-                this.Player.SetState(new WalkingState(),this);
+                //this.Player.SetState(new WalkingState(),this);
                 this.currentPath = 0;
             }
 
@@ -360,11 +365,15 @@ class Main extends egret.DisplayObjectContainer {
 
             if(this.ifFindAWay)
             this.map01.startTile = this.map01.endTile;
+
+            this.commandList.addCommand(new FightCommand(this.Player,this));
+            this.commandList.addCommand(new WalkCommand(this));
+            this.commandList.execute();
         },this)
         
-            //this.PlayerMove();
+            this.PlayerMove();
         
-        
+            
             this.PlayerAnimation();
             
         
@@ -416,10 +425,12 @@ class Main extends egret.DisplayObjectContainer {
         
     // }
 
+
+
    public PlayerMove(){
        var self:any = this;
        
-       egret.Ticker.getInstance().register(()=>{
+    egret.Ticker.getInstance().register(()=>{
     if(this.ifStartMove && self.ifFindAWay){
        if(self.currentPath < self.astar.pathArray.length - 1){ 
             var distanceX = self.astar.pathArray[self.currentPath + 1].x - self.astar.pathArray[self.currentPath].x;
@@ -439,6 +450,11 @@ class Main extends egret.DisplayObjectContainer {
             else{
                self.currentPath += 1;
             }
+            if(self.IfOnGoal(self.map01.endTile)){
+                self.Player.SetState(new IdleState(),self);
+                this.ifStartMove = false;
+                console.log("PM");
+            }
           }
     }
     if(this.ifStartMove && !self.ifFindAWay){
@@ -446,16 +462,19 @@ class Main extends egret.DisplayObjectContainer {
         var distanceY = self.map01.startTile.y - self.playerBitY;
         if(distanceX > 0){
             self.Player.SetRightOrLeftState(new GoRightState(),self);
-            }
-            if(distanceX <= 0){
+        }
+        if(distanceX <= 0){
             self.Player.SetRightOrLeftState(new GoLeftState(),self);
-            }
+        }
         if(!self.IfOnGoal(self.map01.startTile)){
                self.Player.PersonBitmap.x += distanceX / self.movingTime;
                self.Player.PersonBitmap.y += distanceY / self.movingTime;
-            }
-            else
+        }
+        else{
             self.Player.SetState(new IdleState(),self);
+            this.ifStartMove = false;
+            console.log("PM");
+        }
     }
         },self)
 
@@ -512,11 +531,13 @@ class Main extends egret.DisplayObjectContainer {
         var n = 0;
         var GOR = 0;
         var GOL = 0;
+        var fight = 0;
         var zhen = 0;
         var zhen2 = 0;
         var zhen3 = 0;
         var standArr = ["08","09","10","11","12","13","14","15","16","17","18","19"];
         var walkRightArr = ["24","25","26","27","28","29","30","31","32","33","34",];
+        var fightArr = ["0","1","2","3","4","5","6","7","8"];
 
         var MoveAnimation:Function = function (){
             //var playerBitmap = egret.Tween.get(self.Player.PersonBitmap);
@@ -525,9 +546,10 @@ class Main extends egret.DisplayObjectContainer {
                 egret.Ticker.getInstance().register(()=>{
                 if(zhen % 4 == 0){
                     
-                    if(self.Player.GetIfIdle() && !self.Player.GetIfWalk()){
+                    if(self.Player.GetIfIdle() && !self.Player.GetIfWalk() && !self.Player.GetIfFight()){
                     GOR = 0;
                     GOL = 0;
+                    fight = 0;
                     var textureName = "00" + standArr[n] + "_png";
                     var texture : egret.Texture = RES.getRes(textureName);
                     self.Player.PersonBitmap.texture = texture;
@@ -535,14 +557,15 @@ class Main extends egret.DisplayObjectContainer {
                     if(n >= standArr.length){
                           n=0;
                           }
-                          }
+                        }
                           
 
 
 
-                    if(self.Player.GetIfWalk() && self.Player.GetIfGoRight() && !self.Player.GetIfIdle()){
+                    if(self.Player.GetIfWalk() && self.Player.GetIfGoRight() && !self.Player.GetIfIdle() && !self.Player.GetIfFight()){
                         n = 0;
                         GOL = 0;
+                        fight = 0;
                     var textureName = "00" + walkRightArr[GOR] + "_png";
                     var texture : egret.Texture = RES.getRes(textureName);
                     self.Player.PersonBitmap.texture = texture;
@@ -552,9 +575,10 @@ class Main extends egret.DisplayObjectContainer {
                           }
                           }
 
-                          if(self.Player.GetIfWalk() && self.Player.GetIfGoLeft() && !self.Player.GetIfIdle()){
+                    if(self.Player.GetIfWalk() && self.Player.GetIfGoLeft() && !self.Player.GetIfIdle() && !self.Player.GetIfFight()){
                               n = 0;
                               GOR = 0;
+                              fight = 0;
                     var textureName = "00" + walkRightArr[GOL] + "_2_png";
                     var texture : egret.Texture = RES.getRes(textureName);
                     self.Player.PersonBitmap.texture = texture;
@@ -564,12 +588,32 @@ class Main extends egret.DisplayObjectContainer {
                           }
                     }
 
+
+
+                    if(self.Player.GetIfFight() && !self.Player.GetIfWalk() && !self.Player.GetIfIdle()){
+                        GOR = 0;
+                        GOL = 0;
+                        n = 0;
+                        
+                        var textureName = "020" + fightArr[fight] + "_png";
+                        var texture : egret.Texture = RES.getRes(textureName);
+                        self.Player.PersonBitmap.texture = texture;
+                        fight++;
+                        if(fight >= fightArr.length){
+                            fight = 0;
+                        }
                     }
 
 
-                    if(self.IfOnGoal(self.map01.endTile)){
-                     self.Player.SetState(new IdleState(),self);
+
                     }
+
+
+                    // if(self.IfOnGoal(self.map01.endTile)){
+                    //  self.Player.SetState(new IdleState(),self);
+                    //  console.log("PA");
+                    // }
+
                 },self);
 
                 // var texture : egret.Texture = self.IdlePictures[n];
@@ -624,6 +668,7 @@ class Person{
     private IsWalking : boolean;
     private GoRight : boolean = false;
     private GoLeft : boolean = false;
+    private IsFight : boolean;
     private IdleOrWalkStateMachine : StateMachine;
     private LeftOrRightStateMachine : StateMachine;
 
@@ -635,6 +680,7 @@ class Person{
         // this.PersonBitmap.anchorOffsetY = this.PersonBitmap.height;
         this.IsIdle = true;
         this.IsWalking = false;
+        this.IsFight = false;
         this.IdleOrWalkStateMachine = new StateMachine();
         this.LeftOrRightStateMachine = new StateMachine();
 
@@ -659,6 +705,14 @@ class Person{
 
     public GetIfWalk(): boolean{
         return this.IsWalking
+    }
+
+    public SetFight(set : boolean){
+        this.IsFight = set;
+    }
+
+    public GetIfFight():boolean{
+        return this.IsFight;
     }
 
     public SetGoRight(){
@@ -728,6 +782,7 @@ class IdleState implements PeopleState{
     OnState(_tmain : Main){
         _tmain.Player.SetIdle(true);
         _tmain.Player.SetWalk(false);
+        _tmain.Player.SetFight(false);
     };
 
     ExitState(_tmain : Main){
@@ -740,11 +795,24 @@ class WalkingState implements PeopleState{
       OnState(_tmain : Main){
         _tmain.Player.SetIdle(false);
         _tmain.Player.SetWalk(true);
+        _tmain.Player.SetFight(false);
     };
 
     ExitState(_tmain : Main){
         _tmain.Player.SetWalk(false);
     };
+}
+
+class FightState implements PeopleState{
+    OnState(_tmain : Main){
+        _tmain.Player.SetFight(true);
+        _tmain.Player.SetIdle(false);
+        _tmain.Player.SetWalk(false);
+    }
+
+    ExitState(_tmain : Main){
+        _tmain.Player.SetFight(false);
+    }
 }
 
 class GoRightState implements PeopleState{
@@ -764,4 +832,6 @@ class GoLeftState implements PeopleState{
     ExitState(_tmain : Main){};
 
 }
+
+
 

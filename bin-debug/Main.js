@@ -136,6 +136,7 @@ var Main = (function (_super) {
         // this.Stage01Background.height = stageH;
         // this.Stage01Background.x = -stageH * 3.1 / 2;
         // this.Stage01Background.y = 0;
+        this.commandList = new CommandList();
         this.Player = new Person();
         var stageW = this.stage.stageWidth;
         var stageH = this.stage.stageHeight;
@@ -187,8 +188,8 @@ var Main = (function (_super) {
         this.helment = new Armor("A001", "Purplrhelment01", Quality.PURPLE, ArmorType.LIGHTARMOR, "PurpleHelmet01_png");
         this.corseler = new Armor("A002", "GreenCorseler01", Quality.GREEN, ArmorType.LIGHTARMOR, "GreenCorseler01_png");
         this.shoes = new Armor("A003", "BlueShoes01", Quality.BLUE, ArmorType.LIGHTARMOR, "BlueShoes01_png");
-        this.weaponJewel = new Jewel("J001", "传说武器宝石01", Quality.ORAGE);
-        this.armorJewel = new Jewel("J002", "普通防具宝石01", Quality.WHITE);
+        this.weaponJewel = new Jewel("J001", "传说武器宝石", Quality.ORAGE);
+        this.armorJewel = new Jewel("J002", "普通防具宝石", Quality.WHITE);
         this.sword.addJewl(this.weaponJewel);
         this.helment.addJewl(this.armorJewel);
         this.corseler.addJewl(this.armorJewel);
@@ -224,7 +225,7 @@ var Main = (function (_super) {
         //RES.getResAsync("description_json", this.startAnimation, this)
         this.stage.addEventListener(egret.TouchEvent.TOUCH_BEGIN, function (e) {
             //egret.Tween.removeTweens(this.Player.PersonBitmap);
-            _this.ifStartMove = true;
+            //this.ifStartMove = true;
             //var tempTile : Tile;
             _this.playerx = Math.floor(_this.Player.PersonBitmap.x / _this.tileSize);
             _this.playery = Math.floor(_this.Player.PersonBitmap.y / _this.tileSize);
@@ -245,7 +246,7 @@ var Main = (function (_super) {
             _this.map01.endTile = _this.map01.getTile(_this.tileX, _this.tileY);
             _this.ifFindAWay = _this.astar.findPath(_this.map01);
             if (_this.ifFindAWay) {
-                _this.Player.SetState(new WalkingState(), _this);
+                //this.Player.SetState(new WalkingState(),this);
                 _this.currentPath = 0;
             }
             for (var i = 0; i < _this.astar.pathArray.length; i++) {
@@ -266,8 +267,11 @@ var Main = (function (_super) {
             // this.PictureMove(this.Stage01Background);
             if (_this.ifFindAWay)
                 _this.map01.startTile = _this.map01.endTile;
+            _this.commandList.addCommand(new FightCommand(_this.Player, _this));
+            _this.commandList.addCommand(new WalkCommand(_this));
+            _this.commandList.execute();
         }, this);
-        //this.PlayerMove();
+        this.PlayerMove();
         this.PlayerAnimation();
     };
     /**
@@ -329,6 +333,11 @@ var Main = (function (_super) {
                     else {
                         self.currentPath += 1;
                     }
+                    if (self.IfOnGoal(self.map01.endTile)) {
+                        self.Player.SetState(new IdleState(), self);
+                        _this.ifStartMove = false;
+                        console.log("PM");
+                    }
                 }
             }
             if (_this.ifStartMove && !self.ifFindAWay) {
@@ -344,8 +353,11 @@ var Main = (function (_super) {
                     self.Player.PersonBitmap.x += distanceX / self.movingTime;
                     self.Player.PersonBitmap.y += distanceY / self.movingTime;
                 }
-                else
+                else {
                     self.Player.SetState(new IdleState(), self);
+                    _this.ifStartMove = false;
+                    console.log("PM");
+                }
             }
         }, self);
         //    for( self.currentPath = 0 ; self.currentPath < self.astar.pathArray.length - 1; self.currentPath++){
@@ -390,18 +402,21 @@ var Main = (function (_super) {
         var n = 0;
         var GOR = 0;
         var GOL = 0;
+        var fight = 0;
         var zhen = 0;
         var zhen2 = 0;
         var zhen3 = 0;
         var standArr = ["08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19"];
         var walkRightArr = ["24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34",];
+        var fightArr = ["0", "1", "2", "3", "4", "5", "6", "7", "8"];
         var MoveAnimation = function () {
             //var playerBitmap = egret.Tween.get(self.Player.PersonBitmap);
             egret.Ticker.getInstance().register(function () {
                 if (zhen % 4 == 0) {
-                    if (self.Player.GetIfIdle() && !self.Player.GetIfWalk()) {
+                    if (self.Player.GetIfIdle() && !self.Player.GetIfWalk() && !self.Player.GetIfFight()) {
                         GOR = 0;
                         GOL = 0;
+                        fight = 0;
                         var textureName = "00" + standArr[n] + "_png";
                         var texture = RES.getRes(textureName);
                         self.Player.PersonBitmap.texture = texture;
@@ -410,9 +425,10 @@ var Main = (function (_super) {
                             n = 0;
                         }
                     }
-                    if (self.Player.GetIfWalk() && self.Player.GetIfGoRight() && !self.Player.GetIfIdle()) {
+                    if (self.Player.GetIfWalk() && self.Player.GetIfGoRight() && !self.Player.GetIfIdle() && !self.Player.GetIfFight()) {
                         n = 0;
                         GOL = 0;
+                        fight = 0;
                         var textureName = "00" + walkRightArr[GOR] + "_png";
                         var texture = RES.getRes(textureName);
                         self.Player.PersonBitmap.texture = texture;
@@ -421,9 +437,10 @@ var Main = (function (_super) {
                             GOR = 0;
                         }
                     }
-                    if (self.Player.GetIfWalk() && self.Player.GetIfGoLeft() && !self.Player.GetIfIdle()) {
+                    if (self.Player.GetIfWalk() && self.Player.GetIfGoLeft() && !self.Player.GetIfIdle() && !self.Player.GetIfFight()) {
                         n = 0;
                         GOR = 0;
+                        fight = 0;
                         var textureName = "00" + walkRightArr[GOL] + "_2_png";
                         var texture = RES.getRes(textureName);
                         self.Player.PersonBitmap.texture = texture;
@@ -432,10 +449,23 @@ var Main = (function (_super) {
                             GOL = 0;
                         }
                     }
+                    if (self.Player.GetIfFight() && !self.Player.GetIfWalk() && !self.Player.GetIfIdle()) {
+                        GOR = 0;
+                        GOL = 0;
+                        n = 0;
+                        var textureName = "020" + fightArr[fight] + "_png";
+                        var texture = RES.getRes(textureName);
+                        self.Player.PersonBitmap.texture = texture;
+                        fight++;
+                        if (fight >= fightArr.length) {
+                            fight = 0;
+                        }
+                    }
                 }
-                if (self.IfOnGoal(self.map01.endTile)) {
-                    self.Player.SetState(new IdleState(), self);
-                }
+                // if(self.IfOnGoal(self.map01.endTile)){
+                //  self.Player.SetState(new IdleState(),self);
+                //  console.log("PA");
+                // }
             }, self);
             // var texture : egret.Texture = self.IdlePictures[n];
             // self.PlayerPic.texture = texture;
@@ -471,6 +501,7 @@ var Person = (function () {
         // this.PersonBitmap.anchorOffsetY = this.PersonBitmap.height;
         this.IsIdle = true;
         this.IsWalking = false;
+        this.IsFight = false;
         this.IdleOrWalkStateMachine = new StateMachine();
         this.LeftOrRightStateMachine = new StateMachine();
     }
@@ -489,6 +520,12 @@ var Person = (function () {
     };
     p.GetIfWalk = function () {
         return this.IsWalking;
+    };
+    p.SetFight = function (set) {
+        this.IsFight = set;
+    };
+    p.GetIfFight = function () {
+        return this.IsFight;
     };
     p.SetGoRight = function () {
         this.GoRight = true;
@@ -551,6 +588,7 @@ var IdleState = (function () {
     p.OnState = function (_tmain) {
         _tmain.Player.SetIdle(true);
         _tmain.Player.SetWalk(false);
+        _tmain.Player.SetFight(false);
     };
     ;
     p.ExitState = function (_tmain) {
@@ -567,6 +605,7 @@ var WalkingState = (function () {
     p.OnState = function (_tmain) {
         _tmain.Player.SetIdle(false);
         _tmain.Player.SetWalk(true);
+        _tmain.Player.SetFight(false);
     };
     ;
     p.ExitState = function (_tmain) {
@@ -576,6 +615,21 @@ var WalkingState = (function () {
     return WalkingState;
 }());
 egret.registerClass(WalkingState,'WalkingState');
+var FightState = (function () {
+    function FightState() {
+    }
+    var d = __define,c=FightState,p=c.prototype;
+    p.OnState = function (_tmain) {
+        _tmain.Player.SetFight(true);
+        _tmain.Player.SetIdle(false);
+        _tmain.Player.SetWalk(false);
+    };
+    p.ExitState = function (_tmain) {
+        _tmain.Player.SetFight(false);
+    };
+    return FightState;
+}());
+egret.registerClass(FightState,'FightState');
 var GoRightState = (function () {
     function GoRightState() {
     }
