@@ -139,6 +139,7 @@ var Main = (function (_super) {
         // this.Stage01Background.y = 0;
         this.commandList = new CommandList();
         this.canMove = true;
+        this.userPanelIsOn = false;
         this.Player = new Person();
         var stageW = this.stage.stageWidth;
         var stageH = this.stage.stageHeight;
@@ -180,6 +181,10 @@ var Main = (function (_super) {
         this.addChild(this.dialoguePanel);
         this.dialoguePanel.x = 200;
         this.dialoguePanel.y = 200;
+        this.userPanelButton = this.createBitmapByName("userPanelButton_png");
+        this.addChild(this.userPanelButton);
+        this.userPanelButton.x = 10 * 64 - this.userPanelButton.width;
+        this.userPanelButton.y = 0;
         this.addChild(this.Player.PersonBitmap);
         this.Player.PersonBitmap.x = 0;
         this.Player.PersonBitmap.y = 0;
@@ -199,12 +204,18 @@ var Main = (function (_super) {
         this.helment.addJewl(this.armorJewel);
         this.corseler.addJewl(this.armorJewel);
         this.shoes.addJewl(this.armorJewel);
-        this.hero.addWeapon(this.sword);
+        //this.hero.addWeapon(this.sword);
         this.hero.addHelment(this.helment);
         this.hero.addCorseler(this.corseler);
         this.hero.addShoes(this.shoes);
         this.user.addHeroInTeam(this.hero);
         this.user.addHeros(this.hero);
+        EquipmentServer.getInstance();
+        EquipmentServer.getInstance().addEquipment(this.sword);
+        EquipmentServer.getInstance().addEquipment(this.helment);
+        EquipmentServer.getInstance().addEquipment(this.corseler);
+        EquipmentServer.getInstance().addEquipment(this.shoes);
+        EquipmentServer.getInstance().addEquipment(new Weapon("W002", "LeagendLance01", Quality.ORAGE, WeaponType.LANCE, "OrageLance01_png"));
         //  console.log(this.user.getFightPower());
         //  console.log(this.hero.getAttack());
         //  console.log(this.hero.getDefence());
@@ -219,10 +230,15 @@ var Main = (function (_super) {
         //  console.log("hero fightpower :" + this.hero.getFightPower().toFixed(0));
         this.userPanel = new UserPanel();
         //this.addChild(this.userPanel);
-        //  this.userPanel.showHeroInformation(this.hero);
-        //  this.userPanel.x = (this.stage.width - this.userPanel.width) / 2;
-        //  this.userPanel.y = (this.stage.height - this.userPanel.height) / 2;
+        this.userPanel.showHeroInformation(this.hero);
+        this.userPanel.x = (this.stage.width - this.userPanel.width) / 2;
+        this.userPanel.y = (this.stage.height - this.userPanel.height) / 2;
         //this.userPanel.equipmentInformationPanel.showEquipmentInformation(this.sword);
+        this.userPanelButton.addEventListener(egret.TouchEvent.TOUCH_BEGIN, function (e) {
+            _this.addChild(_this.userPanel);
+            _this.userPanel.showHeroInformation(_this.hero);
+            console.log("upbdown");
+        }, this);
         //根据name关键字，异步获取一个json配置文件，name属性请参考resources/resource.json配置文件的内容。
         // Get asynchronously a json configuration file according to name keyword. As for the property of name please refer to the configuration file of resources/resource.json.
         //RES.getResAsync("description_json", this.startAnimation, this)
@@ -231,6 +247,10 @@ var Main = (function (_super) {
             //this.ifStartMove = true;
             //var tempTile : Tile;
             NPC.npcIsChoose = null;
+            if (_this.userPanelIsOn) {
+                _this.removeChild(_this.userPanel);
+                _this.userPanelIsOn = false;
+            }
             _this.playerx = Math.floor(_this.Player.PersonBitmap.x / _this.tileSize);
             _this.playery = Math.floor(_this.Player.PersonBitmap.y / _this.tileSize);
             _this.playerBitX = _this.Player.PersonBitmap.x;
@@ -276,8 +296,13 @@ var Main = (function (_super) {
             // this.PictureMove(this.Stage01Background);
             if (_this.ifFindAWay)
                 _this.map01.startTile = _this.map01.endTile;
+            if (_this.EventPoint.x >= _this.userPanelButton.x && _this.EventPoint.y <= _this.userPanelButton.height) {
+                _this.addChild(_this.userPanel);
+                _this.userPanel.showHeroInformation(_this.hero);
+                _this.userPanelIsOn = true;
+            }
             _this.commandList.addCommand(new FightCommand(_this.Player, _this));
-            if (_this.canMove)
+            if (_this.canMove && !_this.userPanelIsOn)
                 _this.commandList.addCommand(new WalkCommand(_this));
             _this.commandList.addCommand(new FightCommand(_this.Player, _this));
             if (NPC.npcIsChoose != null)

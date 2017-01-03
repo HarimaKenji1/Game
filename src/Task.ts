@@ -47,6 +47,7 @@ class Task extends EventEmitter implements TaskConditionContext,Observer {
     public conditionType : string;
     public preTaskListId : string[] = [];
     private taskCondition: TaskCondition;
+    private rewardEquipmentId : string;
 
 
     public getCurrent() {
@@ -99,7 +100,7 @@ class Task extends EventEmitter implements TaskConditionContext,Observer {
 
     constructor(id: string, name: string, desc: string,
      total: number, status: TaskStatus, taskcondition: TaskCondition,conditiontype,
-      fromNpcId: string, toNpcId: string,preTaskListId : string[]) {
+      fromNpcId: string, toNpcId: string,preTaskListId : string[],rewardEquipmentId : string) {
         super();
         this.id = id;
         this.name = name;
@@ -112,6 +113,7 @@ class Task extends EventEmitter implements TaskConditionContext,Observer {
         this.conditionType = conditiontype;
         this.preTaskListId = preTaskListId;
         this.addObserver(TaskService.getInstance());
+        this.rewardEquipmentId = rewardEquipmentId;
         
 
     }
@@ -310,8 +312,8 @@ function creatTaskCondition(id: string) {
 
     function creatTask(id: string) {
         var data = {
-            "task_00": { name: "任务01", desc: "点击NPC_1,在NPC_2交任务", total: 1, status: TaskStatus.ACCEPTABLE, condition: "npctalk", fromNpcId: "npc_0", toNpcId: "npc_1" ,preTaskListId : ["null"]},
-            "task_01": { name: "任务02", desc: "点击NPC_2,杀死十只怪物后点NPC_2交任务", total: 10, status: TaskStatus.UNACCEPTABLE, condition: "killmonster", fromNpcId: "npc_1", toNpcId: "npc_1" ,preTaskListId : ["task_00"]},
+            "task_00": { name: "任务01", desc: "点击NPC_1,在NPC_2交任务", total: 1, status: TaskStatus.ACCEPTABLE, condition: "npctalk", fromNpcId: "npc_0", toNpcId: "npc_1" ,preTaskListId : ["null"],rewardEquipmentId:"W001"},
+            "task_01": { name: "任务02", desc: "点击NPC_2,杀死十只怪物后点NPC_2交任务", total: 10, status: TaskStatus.UNACCEPTABLE, condition: "killmonster", fromNpcId: "npc_1", toNpcId: "npc_1" ,preTaskListId : ["task_00"],rewardEquipmentId:"A001"},
 
         }
         var info = data[id];
@@ -319,7 +321,7 @@ function creatTaskCondition(id: string) {
             console.error('missing task')
         }
         var condition = this.creatTaskCondition(info.condition);
-        return new Task(id, info.name, info.desc, info.total, info.status, condition, info.condition,info.fromNpcId, info.toNpcId,info.preTaskListId);
+        return new Task(id, info.name, info.desc, info.total, info.status, condition, info.condition,info.fromNpcId, info.toNpcId,info.preTaskListId,info.rewardEquipmentId);
     }
 
 class TaskPanel extends egret.DisplayObjectContainer implements Observer {

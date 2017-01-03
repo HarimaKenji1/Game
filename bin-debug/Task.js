@@ -28,7 +28,7 @@ var EventEmitter = (function () {
 egret.registerClass(EventEmitter,'EventEmitter');
 var Task = (function (_super) {
     __extends(Task, _super);
-    function Task(id, name, desc, total, status, taskcondition, conditiontype, fromNpcId, toNpcId, preTaskListId) {
+    function Task(id, name, desc, total, status, taskcondition, conditiontype, fromNpcId, toNpcId, preTaskListId, rewardEquipmentId) {
         _super.call(this);
         this.current = 0;
         this.total = 100;
@@ -44,6 +44,7 @@ var Task = (function (_super) {
         this.conditionType = conditiontype;
         this.preTaskListId = preTaskListId;
         this.addObserver(TaskService.getInstance());
+        this.rewardEquipmentId = rewardEquipmentId;
     }
     var d = __define,c=Task,p=c.prototype;
     p.getCurrent = function () {
@@ -225,15 +226,15 @@ function creatTaskCondition(id) {
 }
 function creatTask(id) {
     var data = {
-        "task_00": { name: "任务01", desc: "点击NPC_1,在NPC_2交任务", total: 1, status: TaskStatus.ACCEPTABLE, condition: "npctalk", fromNpcId: "npc_0", toNpcId: "npc_1", preTaskListId: ["null"] },
-        "task_01": { name: "任务02", desc: "点击NPC_2,杀死十只怪物后点NPC_2交任务", total: 10, status: TaskStatus.UNACCEPTABLE, condition: "killmonster", fromNpcId: "npc_1", toNpcId: "npc_1", preTaskListId: ["task_00"] },
+        "task_00": { name: "任务01", desc: "点击NPC_1,在NPC_2交任务", total: 1, status: TaskStatus.ACCEPTABLE, condition: "npctalk", fromNpcId: "npc_0", toNpcId: "npc_1", preTaskListId: ["null"], rewardEquipmentId: "W001" },
+        "task_01": { name: "任务02", desc: "点击NPC_2,杀死十只怪物后点NPC_2交任务", total: 10, status: TaskStatus.UNACCEPTABLE, condition: "killmonster", fromNpcId: "npc_1", toNpcId: "npc_1", preTaskListId: ["task_00"], rewardEquipmentId: "A001" },
     };
     var info = data[id];
     if (!info) {
         console.error('missing task');
     }
     var condition = this.creatTaskCondition(info.condition);
-    return new Task(id, info.name, info.desc, info.total, info.status, condition, info.condition, info.fromNpcId, info.toNpcId, info.preTaskListId);
+    return new Task(id, info.name, info.desc, info.total, info.status, condition, info.condition, info.fromNpcId, info.toNpcId, info.preTaskListId, info.rewardEquipmentId);
 }
 var TaskPanel = (function (_super) {
     __extends(TaskPanel, _super);

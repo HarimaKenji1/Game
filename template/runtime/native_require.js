@@ -15,6 +15,7 @@ var game_file_list = [
 	"bin-debug/LoadingUI.js",
 	"bin-debug/Main.js",
 	"bin-debug/NPC.js",
+	"bin-debug/Package.js",
 	"bin-debug/Task.js",
 	"bin-debug/ScreenService.js",
 	"bin-debug/TileNode.js",

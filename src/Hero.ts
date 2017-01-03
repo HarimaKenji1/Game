@@ -20,7 +20,7 @@ enum Quality {
 
 enum WeaponType {
     HANDSWORD = 1,
-    GREATSWORD = 1.8,
+    LANCE = 1.8,
     AXE = 2,
     KATANA = 1.5,
     HAMMER = 2.5
@@ -210,6 +210,7 @@ class Equipment{
     equipmentBitmapID : string;
     properties : Property[] = [];
     color;
+    numInPackage : number;
     //  @Cache
     //  getTotalExp(){
     //      this.totalExp = (this.level + 20) * this.level;
@@ -393,9 +394,6 @@ class Properties{
     }
 }
 
-class Package{
-
-}
 
 class GetColor{
     static getColor(quality : Quality){
@@ -411,5 +409,23 @@ class GetColor{
         if(quality == Quality.ORAGE)
         color = 0xf4a315;
         return color;
+    }
+}
+
+class EquipmentServer{
+    private static instance;
+    private equipmentList: {
+        [index: string]: Equipment
+    } = {};
+    static getInstance(): EquipmentServer {
+        if (EquipmentServer.instance == null) {
+            EquipmentServer.instance = new EquipmentServer();
+        }
+
+        return EquipmentServer.instance;
+    }
+
+     public addEquipment(equipment: Equipment) {
+        this.equipmentList[equipment.equipmentID] = equipment;
     }
 }

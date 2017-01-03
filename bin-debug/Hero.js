@@ -26,7 +26,7 @@ var Quality;
 var WeaponType;
 (function (WeaponType) {
     WeaponType[WeaponType["HANDSWORD"] = 1] = "HANDSWORD";
-    WeaponType[WeaponType["GREATSWORD"] = 1.8] = "GREATSWORD";
+    WeaponType[WeaponType["LANCE"] = 1.8] = "LANCE";
     WeaponType[WeaponType["AXE"] = 2] = "AXE";
     WeaponType[WeaponType["KATANA"] = 1.5] = "KATANA";
     WeaponType[WeaponType["HAMMER"] = 2.5] = "HAMMER";
@@ -360,13 +360,6 @@ var Properties = (function () {
     return Properties;
 }());
 egret.registerClass(Properties,'Properties');
-var Package = (function () {
-    function Package() {
-    }
-    var d = __define,c=Package,p=c.prototype;
-    return Package;
-}());
-egret.registerClass(Package,'Package');
 var GetColor = (function () {
     function GetColor() {
     }
@@ -388,4 +381,21 @@ var GetColor = (function () {
     return GetColor;
 }());
 egret.registerClass(GetColor,'GetColor');
+var EquipmentServer = (function () {
+    function EquipmentServer() {
+        this.equipmentList = {};
+    }
+    var d = __define,c=EquipmentServer,p=c.prototype;
+    EquipmentServer.getInstance = function () {
+        if (EquipmentServer.instance == null) {
+            EquipmentServer.instance = new EquipmentServer();
+        }
+        return EquipmentServer.instance;
+    };
+    p.addEquipment = function (equipment) {
+        this.equipmentList[equipment.equipmentID] = equipment;
+    };
+    return EquipmentServer;
+}());
+egret.registerClass(EquipmentServer,'EquipmentServer');
 //# sourceMappingURL=Hero.js.map

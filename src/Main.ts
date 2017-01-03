@@ -173,6 +173,7 @@ class Main extends egret.DisplayObjectContainer {
     private shoes : Armor;
     private weaponJewel : Jewel;
     private armorJewel : Jewel;
+    private userPanelButton : egret.Bitmap;
     
     private commandList : CommandList;
 
@@ -181,6 +182,10 @@ class Main extends egret.DisplayObjectContainer {
     private npcList : NPC[] = [];
 
     public canMove : boolean;
+
+    public equipmentServer : EquipmentServer;
+
+    public userPanelIsOn : boolean;
 
 
     //private equipmentInformationPanel : EquipmentInformationPanel;
@@ -200,7 +205,7 @@ class Main extends egret.DisplayObjectContainer {
         this.commandList = new CommandList();
 
         this.canMove = true;
-
+        this.userPanelIsOn = false;
         this.Player  = new Person();
         var stageW:number = this.stage.stageWidth;
         var stageH:number = this.stage.stageHeight;
@@ -212,7 +217,7 @@ class Main extends egret.DisplayObjectContainer {
         //TaskService.getInstance().init();
         
         
-        this.task01 = creatTask("task_00")
+        this.task01 = creatTask("task_00");
         TaskService.getInstance().addTask(this.task01);
         TaskService.getInstance().addTask(creatTask("task_01"));
         this.taskPanel = new TaskPanel();
@@ -260,6 +265,13 @@ class Main extends egret.DisplayObjectContainer {
         this.dialoguePanel.x = 200;
         this.dialoguePanel.y = 200;
 
+        this.userPanelButton = this.createBitmapByName("userPanelButton_png");
+        this.addChild(this.userPanelButton);
+        this.userPanelButton.x = 10 * 64 - this.userPanelButton.width;
+        this.userPanelButton.y = 0;
+
+
+
         
 
          this.addChild(this.Player.PersonBitmap);
@@ -275,6 +287,7 @@ class Main extends egret.DisplayObjectContainer {
          this.user = new User("Player01",1);
          this.hero = new Hero("H001","FemaleSaberHero01",Quality.ORAGE,1,"FemaleSaberHero01_png",HeroType.SABER);
          this.sword = new Weapon("W001","Leagendsword01",Quality.ORAGE,WeaponType.HANDSWORD,"OrangeSword01_png");
+
          this.helment = new Armor("A001","Purplrhelment01",Quality.PURPLE,ArmorType.LIGHTARMOR,"PurpleHelmet01_png");
          this.corseler = new Armor("A002","GreenCorseler01",Quality.GREEN,ArmorType.LIGHTARMOR,"GreenCorseler01_png");
          this.shoes = new Armor("A003","BlueShoes01",Quality.BLUE,ArmorType.LIGHTARMOR,"BlueShoes01_png");
@@ -285,12 +298,21 @@ class Main extends egret.DisplayObjectContainer {
          this.helment.addJewl(this.armorJewel);
          this.corseler.addJewl(this.armorJewel);
          this.shoes.addJewl(this.armorJewel);
-         this.hero.addWeapon(this.sword);
+         //this.hero.addWeapon(this.sword);
          this.hero.addHelment(this.helment);
          this.hero.addCorseler(this.corseler);
          this.hero.addShoes(this.shoes);
          this.user.addHeroInTeam(this.hero);
          this.user.addHeros(this.hero);
+
+         EquipmentServer.getInstance();
+         EquipmentServer.getInstance().addEquipment(this.sword);
+         EquipmentServer.getInstance().addEquipment(this.helment);
+         EquipmentServer.getInstance().addEquipment(this.corseler);
+         EquipmentServer.getInstance().addEquipment(this.shoes);
+         EquipmentServer.getInstance().addEquipment(new Weapon("W002","LeagendLance01",Quality.ORAGE,WeaponType.LANCE,"OrageLance01_png"));
+
+
 
          
 
@@ -309,13 +331,17 @@ class Main extends egret.DisplayObjectContainer {
 
          this.userPanel = new UserPanel();
          //this.addChild(this.userPanel);
-        //  this.userPanel.showHeroInformation(this.hero);
-        //  this.userPanel.x = (this.stage.width - this.userPanel.width) / 2;
-        //  this.userPanel.y = (this.stage.height - this.userPanel.height) / 2;
+         this.userPanel.showHeroInformation(this.hero);
+         this.userPanel.x = (this.stage.width - this.userPanel.width) / 2;
+         this.userPanel.y = (this.stage.height - this.userPanel.height) / 2;
 
          //this.userPanel.equipmentInformationPanel.showEquipmentInformation(this.sword);
 
-
+         this.userPanelButton.addEventListener(egret.TouchEvent.TOUCH_BEGIN,(e : egret.TouchEvent)=>{
+            this.addChild(this.userPanel);
+            this.userPanel.showHeroInformation(this.hero);
+            console.log("upbdown");
+        },this)
          
 
          
@@ -329,6 +355,10 @@ class Main extends egret.DisplayObjectContainer {
             //this.ifStartMove = true;
             //var tempTile : Tile;
             NPC.npcIsChoose = null;
+            if(this.userPanelIsOn){
+            this.removeChild(this.userPanel);
+            this.userPanelIsOn = false;
+            }
             this.playerx = Math.floor(this.Player.PersonBitmap.x / this.tileSize);
             this.playery = Math.floor(this.Player.PersonBitmap.y / this.tileSize);
             this.playerBitX = this.Player.PersonBitmap.x;
@@ -382,12 +412,16 @@ class Main extends egret.DisplayObjectContainer {
             if(this.ifFindAWay)
             this.map01.startTile = this.map01.endTile;
 
-            
+            if(this.EventPoint.x >= this.userPanelButton.x && this.EventPoint.y <= this.userPanelButton.height){
+                this.addChild(this.userPanel);
+                this.userPanel.showHeroInformation(this.hero);
+                this.userPanelIsOn = true;
+            }
 
             
             this.commandList.addCommand(new FightCommand(this.Player,this));
 
-            if(this.canMove)
+            if(this.canMove && !this.userPanelIsOn)
             this.commandList.addCommand(new WalkCommand(this));
 
             this.commandList.addCommand(new FightCommand(this.Player,this));

@@ -125,10 +125,26 @@ constructor(){
         this.hero = hero;
         this.getHeroInformations(hero);
         this.heroPicture.texture = RES.getRes(hero.heroBitemapID);
+
+        if(hero.__weaponsOnEquip[0])
         this.weaponIconBitmap.texture = RES.getRes(hero.__weaponsOnEquip[0].equipmentBitmapID);
+        else
+        this.weaponIconBitmap.texture = RES.getRes("NoEquipment_png");
+
+        if(hero.__armorOnEquip[0])
         this.helmentIconBitmap.texture = RES.getRes(hero.__armorOnEquip[0].equipmentBitmapID);
+        else
+        this.helmentIconBitmap.texture = RES.getRes("NoEquipment_png");
+
+        if(hero.__armorOnEquip[1])
         this.corselerIconBitmap.texture = RES.getRes(hero.__armorOnEquip[1].equipmentBitmapID);
+        else
+        this.corselerIconBitmap.texture = RES.getRes("NoEquipment_png");
+
+        if(hero.__armorOnEquip[2])
         this.shoesIconBitmap.texture = RES.getRes(hero.__armorOnEquip[2].equipmentBitmapID);
+        else
+        this.shoesIconBitmap.texture = RES.getRes("NoEquipment_png");
         //this.heroInformationTextField.text = this.heroInformationText;
         this.heroInformationTextField.textColor = hero.color;
     }
