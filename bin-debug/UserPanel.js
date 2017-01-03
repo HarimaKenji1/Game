@@ -23,9 +23,13 @@ var UserPanel = (function (_super) {
         this.weaponIconBitmap.y = this.height / 8;
         this.weaponIconBitmap.touchEnabled = true;
         this.weaponIconBitmap.addEventListener(egret.TouchEvent.TOUCH_BEGIN, function (e) {
-            _this.hero.__weaponsOnEquip[0].getEquipmentInformations();
-            _this.equipmentInformationPanel.showEquipmentInformation(_this.hero.__weaponsOnEquip[0]);
-            _this.equipmentInformationPanel.alpha = 1;
+            if (_this.hero.__weaponsOnEquip[0]) {
+                _this.hero.__weaponsOnEquip[0].getEquipmentInformations();
+                _this.equipmentInformationPanel.showEquipmentInformation(_this.hero.__weaponsOnEquip[0]);
+                _this.equipmentInformationPanel.alpha = 1;
+            }
+            else
+                _this.weaponIconBitmap.texture = RES.getRes("NoEquipment_png");
         }, this);
         this.helmentIconBitmap = new egret.Bitmap();
         this.helmentIconBitmap.width = 50;
@@ -35,10 +39,14 @@ var UserPanel = (function (_super) {
         this.helmentIconBitmap.y = this.weaponIconBitmap.y + this.height / 6;
         this.helmentIconBitmap.touchEnabled = true;
         this.helmentIconBitmap.addEventListener(egret.TouchEvent.TOUCH_BEGIN, function (e) {
-            _this.hero.__armorOnEquip[0].getDefence();
-            _this.hero.__armorOnEquip[0].getAglie();
-            _this.equipmentInformationPanel.showEquipmentInformation(_this.hero.__armorOnEquip[0]);
-            _this.equipmentInformationPanel.alpha = 1;
+            if (_this.hero.__armorOnEquip[0]) {
+                _this.hero.__armorOnEquip[0].getDefence();
+                _this.hero.__armorOnEquip[0].getAglie();
+                _this.equipmentInformationPanel.showEquipmentInformation(_this.hero.__armorOnEquip[0]);
+                _this.equipmentInformationPanel.alpha = 1;
+            }
+            else
+                _this.helmentIconBitmap.texture = RES.getRes("NoEquipment_png");
         }, this);
         this.corselerIconBitmap = new egret.Bitmap();
         this.corselerIconBitmap.width = 50;
@@ -48,10 +56,14 @@ var UserPanel = (function (_super) {
         this.corselerIconBitmap.y = this.helmentIconBitmap.y + this.height / 7;
         this.corselerIconBitmap.touchEnabled = true;
         this.corselerIconBitmap.addEventListener(egret.TouchEvent.TOUCH_BEGIN, function (e) {
-            _this.hero.__armorOnEquip[1].getDefence();
-            _this.hero.__armorOnEquip[1].getAglie();
-            _this.equipmentInformationPanel.showEquipmentInformation(_this.hero.__armorOnEquip[1]);
-            _this.equipmentInformationPanel.alpha = 1;
+            if (_this.hero.__armorOnEquip[1]) {
+                _this.hero.__armorOnEquip[1].getDefence();
+                _this.hero.__armorOnEquip[1].getAglie();
+                _this.equipmentInformationPanel.showEquipmentInformation(_this.hero.__armorOnEquip[1]);
+                _this.equipmentInformationPanel.alpha = 1;
+            }
+            else
+                _this.helmentIconBitmap.texture = RES.getRes("NoEquipment_png");
         }, this);
         this.shoesIconBitmap = new egret.Bitmap();
         this.shoesIconBitmap.width = 50;
@@ -61,10 +73,14 @@ var UserPanel = (function (_super) {
         this.shoesIconBitmap.y = this.corselerIconBitmap.y + this.height / 6;
         this.shoesIconBitmap.touchEnabled = true;
         this.shoesIconBitmap.addEventListener(egret.TouchEvent.TOUCH_BEGIN, function (e) {
-            _this.hero.__armorOnEquip[2].getDefence();
-            _this.hero.__armorOnEquip[2].getAglie();
-            _this.equipmentInformationPanel.showEquipmentInformation(_this.hero.__armorOnEquip[2]);
-            _this.equipmentInformationPanel.alpha = 1;
+            if (_this.hero.__armorOnEquip[2]) {
+                _this.hero.__armorOnEquip[2].getDefence();
+                _this.hero.__armorOnEquip[2].getAglie();
+                _this.equipmentInformationPanel.showEquipmentInformation(_this.hero.__armorOnEquip[2]);
+                _this.equipmentInformationPanel.alpha = 1;
+            }
+            else
+                _this.shoesIconBitmap.texture = RES.getRes("NoEquipment_png");
         }, this);
         this.heroPicture = new egret.Bitmap();
         this.heroPicture.width = 323;

@@ -20,8 +20,11 @@ var NPC = (function (_super) {
         this.NPCBitmap.x = 0;
         this.NPCBitmap.y = 0;
         this.NPCBitmap.touchEnabled = true;
-        this.onNPCClick();
+        //this.onNPCClick();
         this.touchEnabled = true;
+        this.NPCBitmap.addEventListener(egret.TouchEvent.TOUCH_TAP, function () {
+            NPC.npcIsChoose = _this;
+        }, this);
         this.emoji = new egret.Bitmap();
         var rule = function (taskList) {
             for (var taskId in taskList) {
@@ -125,68 +128,77 @@ var NPC = (function (_super) {
         }
     };
     p.onNPCClick = function () {
+        var x = 0;
+        //console.log(this.canFinishedTaskId);
+        // if(this.canFinishedTaskId != null){
+        //         if(this.NPCId == this.taskList[this.canFinishedTaskId].toNpcId && this.taskList[this.canFinishedTaskId].status == TaskStatus.DURING){
+        //         DialoguePanel.getInstance().alpha = 0.8;
+        //         DialoguePanel.getInstance().buttonTouchEnable(true);
+        //         DialoguePanel.getInstance().setButtonBitmap("wancheng_png");
+        //         DialoguePanel.getInstance().setIfAccept(false);
+        //         DialoguePanel.getInstance().setDuringTaskId(this.canFinishedTaskId);
+        //         DialoguePanel.getInstance().setDialogueText(this.dialogue);
+        //         DialoguePanel.getInstance().setBackgroundBitmap("duihuakuang_png");
+        //         TaskService.getInstance().canFinish(this.canFinishedTaskId);
+        //     }
+        // }
+        //if( this.canFinishedTaskId == null){
+        //console.log("233NPC");
+        for (var taskId in this.canSumbitTaskList) {
+            if (this.NPCId == this.canSumbitTaskList[taskId].toNpcId && this.canSumbitTaskList[taskId].status == TaskStatus.CAN_SUBMIT) {
+                DialoguePanel.getInstance().alpha = 0.8;
+                //console.log("Give me dialogue");
+                DialoguePanel.getInstance().buttonTouchEnable(true);
+                DialoguePanel.getInstance().setButtonBitmap("wancheng_png");
+                DialoguePanel.getInstance().setIfAccept(false);
+                DialoguePanel.getInstance().setDuringTask(this.canSumbitTaskList[taskId]);
+                //DialoguePanel.getInstance().setDuringTaskConditionType(this.canSumbitTaskList[taskId].conditionType);
+                //DialoguePanel.getInstance().setDuringTaskCondition(this.taskList[taskId].getCondition());
+                DialoguePanel.getInstance().setDialogueText(this.dialogue);
+                DialoguePanel.getInstance().setBackgroundBitmap("duihuakuang_png");
+                TaskService.getInstance().canFinish(taskId);
+                return;
+            }
+        }
+        for (var taskId in this.taskList) {
+            //console.log(taskId);
+            if (this.NPCId == this.taskList[taskId].fromNpcId && this.taskList[taskId].status == TaskStatus.ACCEPTABLE) {
+                DialoguePanel.getInstance().alpha = 0.8;
+                DialoguePanel.getInstance().buttonTouchEnable(true);
+                DialoguePanel.getInstance().setButtonBitmap("jieshou_png");
+                DialoguePanel.getInstance().setIfAccept(true);
+                DialoguePanel.getInstance().setDuringTask(this.taskList[taskId]);
+                //DialoguePanel.getInstance().setDuringTaskConditionType(this.taskList[taskId].conditionType);
+                //DialoguePanel.getInstance().setDuringTaskCondition(this.taskList[taskId].getCondition());
+                DialoguePanel.getInstance().setDialogueText(this.dialogue);
+                DialoguePanel.getInstance().setBackgroundBitmap("duihuakuang_png");
+                //TaskService.getInstance().canAccept(taskId);
+                x++;
+                break;
+            }
+            if (this.NPCId == this.taskList[taskId].toNpcId && this.taskList[taskId].status == TaskStatus.CAN_SUBMIT) {
+                DialoguePanel.getInstance().alpha = 0.8;
+                //console.log("Give me dialogue");
+                DialoguePanel.getInstance().buttonTouchEnable(true);
+                DialoguePanel.getInstance().setButtonBitmap("wancheng_png");
+                DialoguePanel.getInstance().setIfAccept(false);
+                DialoguePanel.getInstance().setDuringTask(this.taskList[taskId]);
+                //DialoguePanel.getInstance().setDuringTaskConditionType(this.taskList[taskId].conditionType);
+                //DialoguePanel.getInstance().setDuringTaskCondition(this.taskList[taskId].getCondition());
+                DialoguePanel.getInstance().setDialogueText(this.dialogue);
+                DialoguePanel.getInstance().setBackgroundBitmap("duihuakuang_png");
+                //TaskService.getInstance().canFinish(taskId);
+                x++;
+                break;
+            }
+        }
+        if (x <= 0)
+            TalkCommand.canFinish = true;
+    };
+    p.getNPC = function () {
         var _this = this;
         this.NPCBitmap.addEventListener(egret.TouchEvent.TOUCH_TAP, function () {
-            //console.log(this.canFinishedTaskId);
-            // if(this.canFinishedTaskId != null){
-            //         if(this.NPCId == this.taskList[this.canFinishedTaskId].toNpcId && this.taskList[this.canFinishedTaskId].status == TaskStatus.DURING){
-            //         DialoguePanel.getInstance().alpha = 0.8;
-            //         DialoguePanel.getInstance().buttonTouchEnable(true);
-            //         DialoguePanel.getInstance().setButtonBitmap("wancheng_png");
-            //         DialoguePanel.getInstance().setIfAccept(false);
-            //         DialoguePanel.getInstance().setDuringTaskId(this.canFinishedTaskId);
-            //         DialoguePanel.getInstance().setDialogueText(this.dialogue);
-            //         DialoguePanel.getInstance().setBackgroundBitmap("duihuakuang_png");
-            //         TaskService.getInstance().canFinish(this.canFinishedTaskId);
-            //     }
-            // }
-            //if( this.canFinishedTaskId == null){
-            for (var taskId in _this.canSumbitTaskList) {
-                if (_this.NPCId == _this.canSumbitTaskList[taskId].toNpcId && _this.canSumbitTaskList[taskId].status == TaskStatus.CAN_SUBMIT) {
-                    DialoguePanel.getInstance().alpha = 0.8;
-                    //console.log("Give me dialogue");
-                    DialoguePanel.getInstance().buttonTouchEnable(true);
-                    DialoguePanel.getInstance().setButtonBitmap("wancheng_png");
-                    DialoguePanel.getInstance().setIfAccept(false);
-                    DialoguePanel.getInstance().setDuringTask(_this.canSumbitTaskList[taskId]);
-                    //DialoguePanel.getInstance().setDuringTaskConditionType(this.canSumbitTaskList[taskId].conditionType);
-                    //DialoguePanel.getInstance().setDuringTaskCondition(this.taskList[taskId].getCondition());
-                    DialoguePanel.getInstance().setDialogueText(_this.dialogue);
-                    DialoguePanel.getInstance().setBackgroundBitmap("duihuakuang_png");
-                    TaskService.getInstance().canFinish(taskId);
-                    return;
-                }
-            }
-            for (var taskId in _this.taskList) {
-                //console.log(taskId);
-                if (_this.NPCId == _this.taskList[taskId].fromNpcId && _this.taskList[taskId].status == TaskStatus.ACCEPTABLE) {
-                    DialoguePanel.getInstance().alpha = 0.8;
-                    DialoguePanel.getInstance().buttonTouchEnable(true);
-                    DialoguePanel.getInstance().setButtonBitmap("jieshou_png");
-                    DialoguePanel.getInstance().setIfAccept(true);
-                    DialoguePanel.getInstance().setDuringTask(_this.taskList[taskId]);
-                    //DialoguePanel.getInstance().setDuringTaskConditionType(this.taskList[taskId].conditionType);
-                    //DialoguePanel.getInstance().setDuringTaskCondition(this.taskList[taskId].getCondition());
-                    DialoguePanel.getInstance().setDialogueText(_this.dialogue);
-                    DialoguePanel.getInstance().setBackgroundBitmap("duihuakuang_png");
-                    //TaskService.getInstance().canAccept(taskId);
-                    break;
-                }
-                if (_this.NPCId == _this.taskList[taskId].toNpcId && _this.taskList[taskId].status == TaskStatus.CAN_SUBMIT) {
-                    DialoguePanel.getInstance().alpha = 0.8;
-                    //console.log("Give me dialogue");
-                    DialoguePanel.getInstance().buttonTouchEnable(true);
-                    DialoguePanel.getInstance().setButtonBitmap("wancheng_png");
-                    DialoguePanel.getInstance().setIfAccept(false);
-                    DialoguePanel.getInstance().setDuringTask(_this.taskList[taskId]);
-                    //DialoguePanel.getInstance().setDuringTaskConditionType(this.taskList[taskId].conditionType);
-                    //DialoguePanel.getInstance().setDuringTaskCondition(this.taskList[taskId].getCondition());
-                    DialoguePanel.getInstance().setDialogueText(_this.dialogue);
-                    DialoguePanel.getInstance().setBackgroundBitmap("duihuakuang_png");
-                    //TaskService.getInstance().canFinish(taskId);
-                    break;
-                }
-            }
+            NPC.npcIsChoose = _this;
         }, this);
     };
     p.createBitmapByName = function (name) {
@@ -238,6 +250,9 @@ var DialoguePanel = (function (_super) {
         }
         return DialoguePanel.instance;
     };
+    p.SetMain = function (main) {
+        this._tmain = main;
+    };
     p.setButtonBitmap = function (buttonBitmapCode) {
         var texture = RES.getRes(buttonBitmapCode);
         this.button.texture = texture;
@@ -283,6 +298,8 @@ var DialoguePanel = (function (_super) {
                     _this.duringTask.updateProccess(1);
                 }
                 egret.Tween.get(_this).to({ alpha: 0 }, 1000);
+                //console.log("1");
+                TalkCommand.canFinish = true;
             }
             if (!_this.ifAccept) {
                 //TaskService.getInstance().finish(this.duringTask.id);
@@ -290,6 +307,8 @@ var DialoguePanel = (function (_super) {
                 var texture = RES.getRes("jieshou_gray_png");
                 _this.button.texture = texture;
                 egret.Tween.get(_this).to({ alpha: 0 }, 1000);
+                //console.log("2");
+                TalkCommand.canFinish = true;
             }
         }, this);
     };

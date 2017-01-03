@@ -1,8 +1,9 @@
 class NPC  extends egret.DisplayObjectContainer implements Observer {
-    private NPCId : string;
+    public NPCId : string;
     private NPCBitmap : egret.Bitmap;
     private emoji : egret.Bitmap;
     private dialogue : string[] = [];
+    public static npcIsChoose : NPC;
     //private canFinishedTaskId : string = null;
     private taskList:{
         [index : string]:Task
@@ -38,8 +39,14 @@ class NPC  extends egret.DisplayObjectContainer implements Observer {
         this.NPCBitmap.touchEnabled = true;
 
         
-        this.onNPCClick();
+        //this.onNPCClick();
+        
+
         this.touchEnabled = true;
+
+         this.NPCBitmap.addEventListener(egret.TouchEvent.TOUCH_TAP,()=>{
+            NPC.npcIsChoose = this;
+        },this)
 
         this.emoji = new egret.Bitmap();
 
@@ -160,8 +167,8 @@ class NPC  extends egret.DisplayObjectContainer implements Observer {
         
     }
 
-    private onNPCClick(){
-        this.NPCBitmap.addEventListener(egret.TouchEvent.TOUCH_TAP,()=>{
+    public onNPCClick(){
+            var x = 0;
             //console.log(this.canFinishedTaskId);
             // if(this.canFinishedTaskId != null){
             //         if(this.NPCId == this.taskList[this.canFinishedTaskId].toNpcId && this.taskList[this.canFinishedTaskId].status == TaskStatus.DURING){
@@ -177,6 +184,7 @@ class NPC  extends egret.DisplayObjectContainer implements Observer {
             // }
 
             //if( this.canFinishedTaskId == null){
+                //console.log("233NPC");
             for(var taskId in this.canSumbitTaskList){
                 if(this.NPCId == this.canSumbitTaskList[taskId].toNpcId && this.canSumbitTaskList[taskId].status == TaskStatus.CAN_SUBMIT){
                     DialoguePanel.getInstance().alpha = 0.8;
@@ -211,6 +219,7 @@ class NPC  extends egret.DisplayObjectContainer implements Observer {
                     DialoguePanel.getInstance().setDialogueText(this.dialogue);
                     DialoguePanel.getInstance().setBackgroundBitmap("duihuakuang_png");
                     //TaskService.getInstance().canAccept(taskId);
+                    x++;
                     break;
                 }
 
@@ -226,12 +235,20 @@ class NPC  extends egret.DisplayObjectContainer implements Observer {
                     DialoguePanel.getInstance().setDialogueText(this.dialogue);
                     DialoguePanel.getInstance().setBackgroundBitmap("duihuakuang_png");
                     //TaskService.getInstance().canFinish(taskId);
+                    x++;
                     break;
                 }
                // }
 
                 
             }
+            if(x <= 0)
+            TalkCommand.canFinish = true;
+    }
+
+    public getNPC(){
+        this.NPCBitmap.addEventListener(egret.TouchEvent.TOUCH_TAP,()=>{
+            NPC.npcIsChoose = this;
         },this)
     }
 
@@ -255,6 +272,7 @@ class DialoguePanel extends egret.DisplayObjectContainer{
     private duringTask : Task;
     private duringTaskConditionType : string;
     private duringTaskCondition : TaskCondition;
+    private _tmain : Main;
 
     private static instance = new DialoguePanel();
 
@@ -272,7 +290,6 @@ class DialoguePanel extends egret.DisplayObjectContainer{
         super();
         this.width = 300;
         this.height = 300;
-
         
 
         this.background = this.createBitmapByName("duihuakuang_png");
@@ -306,6 +323,10 @@ class DialoguePanel extends egret.DisplayObjectContainer{
         this.onClick();
     
         
+    }
+
+    public SetMain(main : Main){
+        this._tmain = main;
     }
 
     public setButtonBitmap(buttonBitmapCode : string){
@@ -362,6 +383,9 @@ class DialoguePanel extends egret.DisplayObjectContainer{
                     //this.duringTask.setCurrent(1);
                 }
                 egret.Tween.get(this).to({alpha : 0},1000);
+                //console.log("1");
+                TalkCommand.canFinish = true;
+
             }
 
             if(!this.ifAccept){
@@ -371,6 +395,8 @@ class DialoguePanel extends egret.DisplayObjectContainer{
                 this.button.texture = texture;
                 
                 egret.Tween.get(this).to({alpha : 0},1000);
+                //console.log("2");
+                TalkCommand.canFinish = true;
             }
         },this)
     }

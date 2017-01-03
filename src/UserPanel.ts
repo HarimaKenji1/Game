@@ -35,9 +35,12 @@ constructor(){
         this.weaponIconBitmap.y = this.height / 8;
         this.weaponIconBitmap.touchEnabled = true;
         this.weaponIconBitmap.addEventListener(egret.TouchEvent.TOUCH_BEGIN,(e : egret.TouchEvent)=>{
+            if(this.hero.__weaponsOnEquip[0]){
             this.hero.__weaponsOnEquip[0].getEquipmentInformations();
             this.equipmentInformationPanel.showEquipmentInformation(this.hero.__weaponsOnEquip[0]);
             this.equipmentInformationPanel.alpha = 1;
+            }else
+                this.weaponIconBitmap.texture = RES.getRes("NoEquipment_png");
         },this)
         
 
@@ -49,10 +52,13 @@ constructor(){
         this.helmentIconBitmap.y = this.weaponIconBitmap.y + this.height / 6;
         this.helmentIconBitmap.touchEnabled = true;
         this.helmentIconBitmap.addEventListener(egret.TouchEvent.TOUCH_BEGIN,(e : egret.TouchEvent)=>{
+            if(this.hero.__armorOnEquip[0]){
             this.hero.__armorOnEquip[0].getDefence();
             this.hero.__armorOnEquip[0].getAglie();
             this.equipmentInformationPanel.showEquipmentInformation(this.hero.__armorOnEquip[0]);
             this.equipmentInformationPanel.alpha = 1;
+            }else
+                this.helmentIconBitmap.texture = RES.getRes("NoEquipment_png");
         },this)
 
         this.corselerIconBitmap = new egret.Bitmap();
@@ -63,10 +69,13 @@ constructor(){
         this.corselerIconBitmap.y = this.helmentIconBitmap.y + this.height / 7;
         this.corselerIconBitmap.touchEnabled = true;
         this.corselerIconBitmap.addEventListener(egret.TouchEvent.TOUCH_BEGIN,(e : egret.TouchEvent)=>{
+            if(this.hero.__armorOnEquip[1]){
             this.hero.__armorOnEquip[1].getDefence();
             this.hero.__armorOnEquip[1].getAglie();
             this.equipmentInformationPanel.showEquipmentInformation(this.hero.__armorOnEquip[1]);
             this.equipmentInformationPanel.alpha = 1;
+            }else
+                this.helmentIconBitmap.texture = RES.getRes("NoEquipment_png");
         },this)
 
         this.shoesIconBitmap = new egret.Bitmap();
@@ -77,10 +86,14 @@ constructor(){
         this.shoesIconBitmap.y = this.corselerIconBitmap.y + this.height / 6;
         this.shoesIconBitmap.touchEnabled = true;
         this.shoesIconBitmap.addEventListener(egret.TouchEvent.TOUCH_BEGIN,(e : egret.TouchEvent)=>{
+            if(this.hero.__armorOnEquip[2]){
             this.hero.__armorOnEquip[2].getDefence();
             this.hero.__armorOnEquip[2].getAglie();
             this.equipmentInformationPanel.showEquipmentInformation(this.hero.__armorOnEquip[2]);
             this.equipmentInformationPanel.alpha = 1;
+            }
+            else
+                this.shoesIconBitmap.texture = RES.getRes("NoEquipment_png");
         },this)
 
         this.heroPicture = new egret.Bitmap();

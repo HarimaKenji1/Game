@@ -1,18 +1,27 @@
 var WalkCommand = (function () {
     function WalkCommand(_tmain) {
         this._tmain = _tmain;
+        WalkCommand.canFinish = false;
     }
     var d = __define,c=WalkCommand,p=c.prototype;
     p.execute = function (callback) {
+        var _this = this;
         if (this._tmain.ifFindAWay) {
             this._tmain.Player.SetState(new WalkingState(), this._tmain);
             this._tmain.ifStartMove = true;
-            callback();
+            egret.Ticker.getInstance().register(function () {
+                if (_this._tmain.ifStartMove == false && WalkCommand.canFinish) {
+                    callback();
+                    WalkCommand.canFinish = false;
+                }
+                //console.log("233");
+            }, this);
         }
     };
     p.cancel = function (callback) {
         callback();
     };
+    WalkCommand.canFinish = false;
     return WalkCommand;
 }());
 egret.registerClass(WalkCommand,'WalkCommand',["Command"]);
@@ -39,6 +48,7 @@ var FightCommand = (function () {
         console.log("脱离战斗");
         this._hasBeenCancelled = true;
         egret.setTimeout(function () {
+            this.player.SetState(new IdleState(), this._tmain);
             callback();
         }, this, 100);
     };
@@ -46,15 +56,33 @@ var FightCommand = (function () {
 }());
 egret.registerClass(FightCommand,'FightCommand',["Command"]);
 var TalkCommand = (function () {
-    function TalkCommand() {
+    function TalkCommand(_tmain, npc) {
+        this._tmain = _tmain;
+        TalkCommand.canFinish = false;
+        this.NPCToTalk = npc;
     }
     var d = __define,c=TalkCommand,p=c.prototype;
     p.execute = function (callback) {
-        callback();
+        var _this = this;
+        TalkCommand.canFinish = false;
+        this.NPCToTalk.onNPCClick();
+        this._tmain.canMove = false;
+        egret.Ticker.getInstance().register(function () {
+            if (TalkCommand.canFinish) {
+                TalkCommand.canFinish = false;
+                NPC.npcIsChoose = null;
+                _this._tmain.canMove = true;
+                //console.log("dui hua wan cheng");
+                callback();
+            }
+            //console.log("233");
+        }, this);
     };
     p.cancel = function (callback) {
+        this._tmain.canMove = false;
         callback();
     };
+    TalkCommand.canFinish = false;
     return TalkCommand;
 }());
 egret.registerClass(TalkCommand,'TalkCommand',["Command"]);

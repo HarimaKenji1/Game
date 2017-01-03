@@ -178,6 +178,11 @@ class Main extends egret.DisplayObjectContainer {
 
     private userPanel : UserPanel;
 
+    private npcList : NPC[] = [];
+
+    public canMove : boolean;
+
+
     //private equipmentInformationPanel : EquipmentInformationPanel;
 
     
@@ -193,6 +198,8 @@ class Main extends egret.DisplayObjectContainer {
         // this.Stage01Background.x = -stageH * 3.1 / 2;
         // this.Stage01Background.y = 0;
         this.commandList = new CommandList();
+
+        this.canMove = true;
 
         this.Player  = new Person();
         var stageW:number = this.stage.stageWidth;
@@ -221,7 +228,9 @@ class Main extends egret.DisplayObjectContainer {
 
 
         this.NPC01 = new NPC("npc_0","NPC_Man_01_png",this.Npc01Dialogue);
+        this.npcList.push(this.NPC01);
         this.NPC02 = new NPC("npc_1","NPC_Man_02_png",this.Npc02Dialogue);
+        this.npcList.push(this.NPC02);
         TaskService.getInstance().addObserver(this.NPC01);
         TaskService.getInstance().addObserver(this.NPC02);
 
@@ -243,9 +252,10 @@ class Main extends egret.DisplayObjectContainer {
 
         this.addChild(this.NPC02);
         this.NPC02.x = 256;
-        this.NPC02.y = 256;
+        this.NPC02.y = 320;
 
         this.dialoguePanel = DialoguePanel.getInstance() ;
+        this.dialoguePanel.SetMain(this);
         this.addChild(this.dialoguePanel);
         this.dialoguePanel.x = 200;
         this.dialoguePanel.y = 200;
@@ -282,6 +292,8 @@ class Main extends egret.DisplayObjectContainer {
          this.user.addHeroInTeam(this.hero);
          this.user.addHeros(this.hero);
 
+         
+
         //  console.log(this.user.getFightPower());
         //  console.log(this.hero.getAttack());
         //  console.log(this.hero.getDefence());
@@ -296,14 +308,12 @@ class Main extends egret.DisplayObjectContainer {
         //  console.log("hero fightpower :" + this.hero.getFightPower().toFixed(0));
 
          this.userPanel = new UserPanel();
-         this.addChild(this.userPanel);
-         this.userPanel.showHeroInformation(this.hero);
-         this.userPanel.x = (this.stage.width - this.userPanel.width) / 2;
-         this.userPanel.y = (this.stage.height - this.userPanel.height) / 2;
+         //this.addChild(this.userPanel);
+        //  this.userPanel.showHeroInformation(this.hero);
+        //  this.userPanel.x = (this.stage.width - this.userPanel.width) / 2;
+        //  this.userPanel.y = (this.stage.height - this.userPanel.height) / 2;
 
-         //this.equipmentInformationPanel = new EquipmentInformationPanel();
-         this.userPanel.equipmentInformationPanel.showEquipmentInformation(this.sword);
-         //this.addChild(this.userPanel.equipmentInformationPanel);
+         //this.userPanel.equipmentInformationPanel.showEquipmentInformation(this.sword);
 
 
          
@@ -318,6 +328,7 @@ class Main extends egret.DisplayObjectContainer {
             //egret.Tween.removeTweens(this.Player.PersonBitmap);
             //this.ifStartMove = true;
             //var tempTile : Tile;
+            NPC.npcIsChoose = null;
             this.playerx = Math.floor(this.Player.PersonBitmap.x / this.tileSize);
             this.playery = Math.floor(this.Player.PersonBitmap.y / this.tileSize);
             this.playerBitX = this.Player.PersonBitmap.x;
@@ -329,6 +340,11 @@ class Main extends egret.DisplayObjectContainer {
             this.EventPoint.y = e.stageY;
             this.tileX = Math.floor(this.EventPoint.x / this.tileSize);
             this.tileY = Math.floor(this.EventPoint.y / this.tileSize);
+
+            for(var npc of this.npcList){
+                if(npc.x / 64 == this.tileX && npc.y /64 == this.tileY)
+                NPC.npcIsChoose = npc;
+            }
             
             // if(this.map01.getTile(this.tileX,this.tileY).tileData.walkable)
             // {
@@ -366,8 +382,21 @@ class Main extends egret.DisplayObjectContainer {
             if(this.ifFindAWay)
             this.map01.startTile = this.map01.endTile;
 
+            
+
+            
             this.commandList.addCommand(new FightCommand(this.Player,this));
+
+            if(this.canMove)
             this.commandList.addCommand(new WalkCommand(this));
+
+            this.commandList.addCommand(new FightCommand(this.Player,this));
+
+            if(NPC.npcIsChoose != null)
+            this.commandList.addCommand(new TalkCommand(this,NPC.npcIsChoose))
+
+            this.commandList.addCommand(new FightCommand(this.Player,this));
+
             this.commandList.execute();
         },this)
         
@@ -450,11 +479,18 @@ class Main extends egret.DisplayObjectContainer {
             else{
                self.currentPath += 1;
             }
-            if(self.IfOnGoal(self.map01.endTile)){
+            // if(self.IfOnGoal(self.map01.endTile)){
+            //     self.Player.SetState(new IdleState(),self);
+            //     this.ifStartMove = false;
+            //     WalkCommand.canFinish = true;
+            //     console.log("PM");
+            // }
+          }
+          if(self.IfOnGoal(self.map01.endTile)){
                 self.Player.SetState(new IdleState(),self);
                 this.ifStartMove = false;
+                WalkCommand.canFinish = true;
                 console.log("PM");
-            }
           }
     }
     if(this.ifStartMove && !self.ifFindAWay){
@@ -473,6 +509,7 @@ class Main extends egret.DisplayObjectContainer {
         else{
             self.Player.SetState(new IdleState(),self);
             this.ifStartMove = false;
+            WalkCommand.canFinish = true;
             console.log("PM");
         }
     }
@@ -611,7 +648,8 @@ class Main extends egret.DisplayObjectContainer {
 
                     // if(self.IfOnGoal(self.map01.endTile)){
                     //  self.Player.SetState(new IdleState(),self);
-                    //  console.log("PA");
+                    //  WalkCommand.canFinish = true;
+                    //  //console.log("PA");
                     // }
 
                 },self);

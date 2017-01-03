@@ -7,16 +7,25 @@ interface Command{
 class WalkCommand implements Command{
 
     private _tmain : Main;
+    public static canFinish = false;
 
     constructor(_tmain : Main){
         this._tmain = _tmain;
+        WalkCommand.canFinish = false;
     }
 
     execute(callback: Function){
         if(this._tmain.ifFindAWay){
             this._tmain.Player.SetState(new WalkingState(),this._tmain);
             this._tmain.ifStartMove = true;
-            callback();
+
+            egret.Ticker.getInstance().register(()=>{
+                if(this._tmain.ifStartMove == false && WalkCommand.canFinish){
+                    callback();
+                    WalkCommand.canFinish = false;
+                }
+                //console.log("233");
+            },this)
         }
     }
 
@@ -53,6 +62,7 @@ class FightCommand implements Command{
         console.log("脱离战斗")
         this._hasBeenCancelled = true;
         egret.setTimeout(function () {
+            this.player.SetState(new IdleState(),this._tmain);
             callback();
         }, this, 100)
 
@@ -62,12 +72,35 @@ class FightCommand implements Command{
 
 class TalkCommand implements Command{
 
+    private _tmain : Main;
+    private NPCToTalk : NPC;
+    public static canFinish = false;
+
+    constructor(_tmain : Main,npc){
+        this._tmain = _tmain;
+        TalkCommand.canFinish = false;
+        this.NPCToTalk = npc;
+    }
     
     execute(callback: Function){
-        callback();
+        TalkCommand.canFinish = false;
+        this.NPCToTalk.onNPCClick();
+        this._tmain.canMove = false;
+
+        egret.Ticker.getInstance().register(()=>{
+                if(TalkCommand.canFinish){
+                    TalkCommand.canFinish = false;
+                    NPC.npcIsChoose = null;
+                    this._tmain.canMove = true;
+                    //console.log("dui hua wan cheng");
+                    callback();
+                }
+                //console.log("233");
+            },this)
     }
 
     cancel(callback: Function){
+        this._tmain.canMove = false;
         callback();
     }
 

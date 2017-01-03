@@ -57,6 +57,7 @@ var Main = (function (_super) {
         this.ifStartMove = false;
         this.Npc01Dialogue = ["你好我是NPC01"];
         this.Npc02Dialogue = ["你好我是NPC02"];
+        this.npcList = [];
         this.addEventListener(egret.Event.ADDED_TO_STAGE, this.onAddToStage, this);
     }
     var d = __define,c=Main,p=c.prototype;
@@ -137,6 +138,7 @@ var Main = (function (_super) {
         // this.Stage01Background.x = -stageH * 3.1 / 2;
         // this.Stage01Background.y = 0;
         this.commandList = new CommandList();
+        this.canMove = true;
         this.Player = new Person();
         var stageW = this.stage.stageWidth;
         var stageH = this.stage.stageHeight;
@@ -153,7 +155,9 @@ var Main = (function (_super) {
         this.taskPanel.x = this.stage.width - this.taskPanel.width;
         this.taskPanel.y = 0;
         this.NPC01 = new NPC("npc_0", "NPC_Man_01_png", this.Npc01Dialogue);
+        this.npcList.push(this.NPC01);
         this.NPC02 = new NPC("npc_1", "NPC_Man_02_png", this.Npc02Dialogue);
+        this.npcList.push(this.NPC02);
         TaskService.getInstance().addObserver(this.NPC01);
         TaskService.getInstance().addObserver(this.NPC02);
         this.screenService = new ScreenService();
@@ -170,8 +174,9 @@ var Main = (function (_super) {
         this.NPC01.y = 128;
         this.addChild(this.NPC02);
         this.NPC02.x = 256;
-        this.NPC02.y = 256;
+        this.NPC02.y = 320;
         this.dialoguePanel = DialoguePanel.getInstance();
+        this.dialoguePanel.SetMain(this);
         this.addChild(this.dialoguePanel);
         this.dialoguePanel.x = 200;
         this.dialoguePanel.y = 200;
@@ -213,13 +218,11 @@ var Main = (function (_super) {
         //  console.log("helment aglie :" + this.helment.getAglie().toFixed(0));
         //  console.log("hero fightpower :" + this.hero.getFightPower().toFixed(0));
         this.userPanel = new UserPanel();
-        this.addChild(this.userPanel);
-        this.userPanel.showHeroInformation(this.hero);
-        this.userPanel.x = (this.stage.width - this.userPanel.width) / 2;
-        this.userPanel.y = (this.stage.height - this.userPanel.height) / 2;
-        //this.equipmentInformationPanel = new EquipmentInformationPanel();
-        this.userPanel.equipmentInformationPanel.showEquipmentInformation(this.sword);
-        //this.addChild(this.userPanel.equipmentInformationPanel);
+        //this.addChild(this.userPanel);
+        //  this.userPanel.showHeroInformation(this.hero);
+        //  this.userPanel.x = (this.stage.width - this.userPanel.width) / 2;
+        //  this.userPanel.y = (this.stage.height - this.userPanel.height) / 2;
+        //this.userPanel.equipmentInformationPanel.showEquipmentInformation(this.sword);
         //根据name关键字，异步获取一个json配置文件，name属性请参考resources/resource.json配置文件的内容。
         // Get asynchronously a json configuration file according to name keyword. As for the property of name please refer to the configuration file of resources/resource.json.
         //RES.getResAsync("description_json", this.startAnimation, this)
@@ -227,6 +230,7 @@ var Main = (function (_super) {
             //egret.Tween.removeTweens(this.Player.PersonBitmap);
             //this.ifStartMove = true;
             //var tempTile : Tile;
+            NPC.npcIsChoose = null;
             _this.playerx = Math.floor(_this.Player.PersonBitmap.x / _this.tileSize);
             _this.playery = Math.floor(_this.Player.PersonBitmap.y / _this.tileSize);
             _this.playerBitX = _this.Player.PersonBitmap.x;
@@ -238,6 +242,11 @@ var Main = (function (_super) {
             _this.EventPoint.y = e.stageY;
             _this.tileX = Math.floor(_this.EventPoint.x / _this.tileSize);
             _this.tileY = Math.floor(_this.EventPoint.y / _this.tileSize);
+            for (var _i = 0, _a = _this.npcList; _i < _a.length; _i++) {
+                var npc = _a[_i];
+                if (npc.x / 64 == _this.tileX && npc.y / 64 == _this.tileY)
+                    NPC.npcIsChoose = npc;
+            }
             // if(this.map01.getTile(this.tileX,this.tileY).tileData.walkable)
             // {
             //     
@@ -268,7 +277,12 @@ var Main = (function (_super) {
             if (_this.ifFindAWay)
                 _this.map01.startTile = _this.map01.endTile;
             _this.commandList.addCommand(new FightCommand(_this.Player, _this));
-            _this.commandList.addCommand(new WalkCommand(_this));
+            if (_this.canMove)
+                _this.commandList.addCommand(new WalkCommand(_this));
+            _this.commandList.addCommand(new FightCommand(_this.Player, _this));
+            if (NPC.npcIsChoose != null)
+                _this.commandList.addCommand(new TalkCommand(_this, NPC.npcIsChoose));
+            _this.commandList.addCommand(new FightCommand(_this.Player, _this));
             _this.commandList.execute();
         }, this);
         this.PlayerMove();
@@ -333,11 +347,12 @@ var Main = (function (_super) {
                     else {
                         self.currentPath += 1;
                     }
-                    if (self.IfOnGoal(self.map01.endTile)) {
-                        self.Player.SetState(new IdleState(), self);
-                        _this.ifStartMove = false;
-                        console.log("PM");
-                    }
+                }
+                if (self.IfOnGoal(self.map01.endTile)) {
+                    self.Player.SetState(new IdleState(), self);
+                    _this.ifStartMove = false;
+                    WalkCommand.canFinish = true;
+                    console.log("PM");
                 }
             }
             if (_this.ifStartMove && !self.ifFindAWay) {
@@ -356,6 +371,7 @@ var Main = (function (_super) {
                 else {
                     self.Player.SetState(new IdleState(), self);
                     _this.ifStartMove = false;
+                    WalkCommand.canFinish = true;
                     console.log("PM");
                 }
             }
@@ -464,7 +480,8 @@ var Main = (function (_super) {
                 }
                 // if(self.IfOnGoal(self.map01.endTile)){
                 //  self.Player.SetState(new IdleState(),self);
-                //  console.log("PA");
+                //  WalkCommand.canFinish = true;
+                //  //console.log("PA");
                 // }
             }, self);
             // var texture : egret.Texture = self.IdlePictures[n];
