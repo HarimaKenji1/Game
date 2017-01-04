@@ -56,9 +56,14 @@ var Main = (function (_super) {
         this.ifOnGoal = false;
         this.ifStartMove = false;
         this.Npc01Dialogue = ["你好我是NPC01"];
+        this.Npc01AcceptDialogue = ["你好我这里有个很简单的对话任务，完成以后就能拿到传说装备yo~,考虑一下吧"];
         this.Npc02Dialogue = ["你好我是NPC02"];
+        this.Npc02AcceptDialogue = ["你好我这里有个很简单的杀怪任务，完成以后也能拿到传说装备yo~,考虑一下吧"];
+        this.Npc02SubmitDialogue = ["你变强了！！！\n点击完成任务后，奖励道具已经自动为您装备，请打开任务面板检查"];
         this.npcList = [];
-        this.monsterList = [];
+        this.monsterIdList = ["slime01", "slime02"];
+        this.disx = 0;
+        this.disy = 0;
         this.addEventListener(egret.Event.ADDED_TO_STAGE, this.onAddToStage, this);
     }
     var d = __define,c=Main,p=c.prototype;
@@ -161,18 +166,29 @@ var Main = (function (_super) {
         this.taskPanel.x = this.stage.width - this.taskPanel.width;
         this.taskPanel.y = 0;
         this.NPC01 = new NPC("npc_0", "NPC_Man_01_png", this.Npc01Dialogue);
+        this.NPC01.setTaskAcceptDialogue(this.Npc01AcceptDialogue);
         this.npcList.push(this.NPC01);
         this.NPC02 = new NPC("npc_1", "NPC_Man_02_png", this.Npc02Dialogue);
+        this.NPC02.setTaskAcceptDialogue(this.Npc02AcceptDialogue);
+        this.NPC02.setTaskSubmitDialogue(this.Npc02SubmitDialogue);
         this.npcList.push(this.NPC02);
         TaskService.getInstance().addObserver(this.NPC01);
         TaskService.getInstance().addObserver(this.NPC02);
         this.screenService = new ScreenService();
-        this.slime = new Monster("Slime01", "slime", "Slime_png", 100);
-        this.addChild(this.slime);
-        this.slime.x = 64 * 5;
-        this.slime.y = 64 * 4;
-        this.slime.touchEnabled = true;
-        this.monsterList.push(this.slime);
+        //this.slime = new Monster("Slime01","slime","Slime_png",100);
+        for (var _i = 0, _a = this.monsterIdList; _i < _a.length; _i++) {
+            var id = _a[_i];
+            var temp = creatMonster(id);
+            this.addChild(temp);
+            temp.x = temp.posX;
+            temp.y = temp.posY;
+            MonsterService.getInstance().addMonster(temp);
+        }
+        // this.addChild(this.slime);
+        // this.slime.x = 64 * 5;
+        // this.slime.y = 64 * 4;
+        // this.slime.touchEnabled = true;
+        // this.monsterList.push(this.slime);
         this.addChild(this.NPC01);
         this.NPC01.x = 128;
         this.NPC01.y = 128;
@@ -197,7 +213,7 @@ var Main = (function (_super) {
         this.astar = new AStar();
         this.user = new User("Player01", 1);
         this.hero = new Hero("H001", "FemaleSaberHero01", Quality.ORAGE, 1, "FemaleSaberHero01_png", HeroType.SABER);
-        this.sword = new Weapon("W001", "Leagendsword01", Quality.ORAGE, WeaponType.HANDSWORD, "OrangeSword01_png");
+        this.sword = new Weapon("W001", "LeagendSword01", Quality.ORAGE, WeaponType.HANDSWORD, "OrangeSword01_png");
         this.lance = new Weapon("W002", "LeagendLance01", Quality.ORAGE, WeaponType.LANCE, "OrageLance01_png");
         this.helment = new Armor("A001", "Purplrhelment01", Quality.PURPLE, ArmorType.LIGHTARMOR, "PurpleHelmet01_png");
         this.corseler = new Armor("A002", "GreenCorseler01", Quality.GREEN, ArmorType.LIGHTARMOR, "GreenCorseler01_png");
@@ -273,8 +289,9 @@ var Main = (function (_super) {
                 if (npc.x / 64 == _this.tileX && npc.y / 64 == _this.tileY)
                     NPC.npcIsChoose = npc;
             }
-            for (var _b = 0, _c = _this.monsterList; _b < _c.length; _b++) {
-                var monster = _c[_b];
+            for (var _b = 0, _c = _this.monsterIdList; _b < _c.length; _b++) {
+                var monsterId = _c[_b];
+                var monster = MonsterService.getInstance().getMonster(monsterId);
                 if (monster.x / 64 == _this.tileX && monster.y / 64 == _this.tileY) {
                     _this.ifFight = true;
                     _this.monsterAttacking = monster;
@@ -293,6 +310,10 @@ var Main = (function (_super) {
             }
             for (var i = 0; i < _this.astar.pathArray.length; i++) {
                 console.log(_this.astar.pathArray[i].x + " And " + _this.astar.pathArray[i].y);
+            }
+            if (_this.astar.pathArray.length > 0) {
+                _this.disx = Math.abs(_this.astar.pathArray[_this.currentPath].x - _this.Player.PersonBitmap.x);
+                _this.disy = Math.abs(_this.astar.pathArray[_this.currentPath].y - _this.Player.PersonBitmap.y);
             }
             // egret.Ticker.getInstance().register(()=>{
             // if(!this.IfOnGoal(this.map01.getTile(1,0))){
@@ -314,11 +335,13 @@ var Main = (function (_super) {
                 _this.userPanel.showHeroInformation(_this.hero);
                 _this.userPanelIsOn = true;
             }
+            if (_this.commandList._list.length > 0)
+                _this.commandList.cancel();
             //this.commandList.addCommand(new FightCommand(this.Player,this));
             if (_this.canMove && !_this.userPanelIsOn)
                 _this.commandList.addCommand(new WalkCommand(_this));
             //this.commandList.addCommand(new FightCommand(this.Player,this));
-            if (NPC.npcIsChoose != null)
+            if (NPC.npcIsChoose != null && !_this.userPanelIsOn)
                 _this.commandList.addCommand(new TalkCommand(_this, NPC.npcIsChoose));
             if (_this.ifFight)
                 _this.commandList.addCommand(new FightCommand(_this.Player, _this, _this.monsterAttacking, _this.hero.getAttack()));
@@ -367,12 +390,13 @@ var Main = (function (_super) {
     p.PlayerMove = function () {
         var _this = this;
         var self = this;
+        var getDistance;
         egret.Ticker.getInstance().register(function () {
             if (_this.ifStartMove && self.ifFindAWay) {
                 if (self.currentPath < self.astar.pathArray.length - 1) {
-                    var distanceX = self.astar.pathArray[self.currentPath + 1].x - self.astar.pathArray[self.currentPath].x;
-                    var distanceY = self.astar.pathArray[self.currentPath + 1].y - self.astar.pathArray[self.currentPath].y;
-                    //console.log(distanceX + "And" + distanceY);
+                    var distanceX = self.astar.pathArray[self.currentPath + 1].x - self.astar.pathArray[self.currentPath].x - _this.disx;
+                    var distanceY = self.astar.pathArray[self.currentPath + 1].y - self.astar.pathArray[self.currentPath].y - _this.disy;
+                    console.log(_this.disx + "And" + _this.disy);
                     if (distanceX > 0) {
                         self.Player.SetRightOrLeftState(new GoRightState(), self);
                     }
@@ -519,7 +543,7 @@ var Main = (function (_super) {
                 }
                 // if(self.IfOnGoal(self.map01.endTile)){
                 //  self.Player.SetState(new IdleState(),self);
-                //  WalkCommand.canFinish = true;
+                //  WalkCommand.canFinish = false;
                 //  //console.log("PA");
                 // }
             }, self);
@@ -556,6 +580,7 @@ var Main = (function (_super) {
             this.user.package.InPackage(temp);
         }
         this.hero.addWeapon(EquipmentServer.getInstance().getWeapon(weaponId));
+        console.log(weaponId);
     };
     p.HeroEquipHelement = function (helmentId) {
         var temp = this.hero.getEquipment(EquipementType.HELMENT);

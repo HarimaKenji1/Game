@@ -5,7 +5,7 @@ var MonsterState;
 })(MonsterState || (MonsterState = {}));
 var Monster = (function (_super) {
     __extends(Monster, _super);
-    function Monster(id, name, pictureId, maxHP) {
+    function Monster(id, name, pictureId, maxHP, x, y) {
         _super.call(this);
         this.width = 64;
         this.height = 64;
@@ -20,6 +20,8 @@ var Monster = (function (_super) {
         this.maxHP = maxHP;
         this.currentHP = maxHP;
         this.state = MonsterState.LIVE;
+        this.posX = x;
+        this.posY = y;
     }
     var d = __define,c=Monster,p=c.prototype;
     p.BeenAttacked = function (damage) {
@@ -37,4 +39,35 @@ var Monster = (function (_super) {
     return Monster;
 }(egret.DisplayObjectContainer));
 egret.registerClass(Monster,'Monster');
+var MonsterService = (function () {
+    function MonsterService() {
+        this.monsterList = {};
+    }
+    var d = __define,c=MonsterService,p=c.prototype;
+    MonsterService.getInstance = function () {
+        if (MonsterService.instance == null) {
+            MonsterService.instance = new MonsterService();
+        }
+        return MonsterService.instance;
+    };
+    p.addMonster = function (monster) {
+        this.monsterList[monster.monsterID] = monster;
+    };
+    p.getMonster = function (id) {
+        return this.monsterList[id];
+    };
+    return MonsterService;
+}());
+egret.registerClass(MonsterService,'MonsterService');
+function creatMonster(id) {
+    var data = {
+        "slime01": { id: "slime01", name: "slime", pictureId: "Slime_png", maxHP: 100, x: 64 * 5, y: 64 * 4 },
+        "slime02": { id: "slime02", name: "slime", pictureId: "Slime_png", maxHP: 100, x: 64 * 4, y: 64 * 6 },
+    };
+    var info = data[id];
+    if (!info) {
+        console.error('missing monster');
+    }
+    return new Monster(info.id, info.name, info.pictureId, info.maxHP, info.x, info.y);
+}
 //# sourceMappingURL=Monstor.js.map

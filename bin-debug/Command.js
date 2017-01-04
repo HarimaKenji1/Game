@@ -86,7 +86,7 @@ var TalkCommand = (function () {
         }, this);
     };
     p.cancel = function (callback) {
-        this._tmain.canMove = false;
+        this._tmain.canMove = true;
         callback();
     };
     TalkCommand.canFinish = false;
@@ -106,11 +106,11 @@ var CommandList = (function () {
         var _this = this;
         this._frozen = true;
         var command = this.currentCommand;
-        egret.setTimeout(function () {
-            if (_this._frozen) {
-                _this._frozen = false;
-            }
-        }, this, 2000);
+        // egret.setTimeout(() => {
+        //     if (this._frozen) {
+        //         this._frozen = false;
+        //     }
+        // }, this, 100);
         if (command) {
             command.cancel(function () {
                 _this._frozen = false;

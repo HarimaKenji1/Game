@@ -3,6 +3,8 @@ class NPC  extends egret.DisplayObjectContainer implements Observer {
     private NPCBitmap : egret.Bitmap;
     private emoji : egret.Bitmap;
     private dialogue : string[] = [];
+    private taskAcceptDialogue : string[] = [];
+    private taskSubmitDialogue : string[] = [];
     public static npcIsChoose : NPC;
     //private canFinishedTaskId : string = null;
     private taskList:{
@@ -81,6 +83,14 @@ class NPC  extends egret.DisplayObjectContainer implements Observer {
         this.addChild(this.emoji);
         this.emoji.x = 20;
         this.emoji.y = 20;
+    }
+
+    public setTaskAcceptDialogue(acceptDialogue : string[]){
+        this.taskAcceptDialogue = acceptDialogue;
+    }
+
+    public setTaskSubmitDialogue(submitDialogue : string[]){
+        this.taskSubmitDialogue = submitDialogue;
     }
 
     onChange(task : Task){
@@ -195,7 +205,7 @@ class NPC  extends egret.DisplayObjectContainer implements Observer {
                     DialoguePanel.getInstance().setDuringTask(this.canSumbitTaskList[taskId]);
                     //DialoguePanel.getInstance().setDuringTaskConditionType(this.canSumbitTaskList[taskId].conditionType);
                     //DialoguePanel.getInstance().setDuringTaskCondition(this.taskList[taskId].getCondition());
-                    DialoguePanel.getInstance().setDialogueText(this.dialogue);
+                    DialoguePanel.getInstance().setDialogueText(this.taskSubmitDialogue);
                     DialoguePanel.getInstance().setBackgroundBitmap("duihuakuang_png");
                     TaskService.getInstance().canFinish(taskId);
                     return;
@@ -216,7 +226,7 @@ class NPC  extends egret.DisplayObjectContainer implements Observer {
                     DialoguePanel.getInstance().setDuringTask(this.taskList[taskId]);
                     //DialoguePanel.getInstance().setDuringTaskConditionType(this.taskList[taskId].conditionType);
                     //DialoguePanel.getInstance().setDuringTaskCondition(this.taskList[taskId].getCondition());
-                    DialoguePanel.getInstance().setDialogueText(this.dialogue);
+                    DialoguePanel.getInstance().setDialogueText(this.taskAcceptDialogue);
                     DialoguePanel.getInstance().setBackgroundBitmap("duihuakuang_png");
                     //TaskService.getInstance().canAccept(taskId);
                     x++;
@@ -232,7 +242,7 @@ class NPC  extends egret.DisplayObjectContainer implements Observer {
                     DialoguePanel.getInstance().setDuringTask(this.taskList[taskId]);
                     //DialoguePanel.getInstance().setDuringTaskConditionType(this.taskList[taskId].conditionType);
                     //DialoguePanel.getInstance().setDuringTaskCondition(this.taskList[taskId].getCondition());
-                    DialoguePanel.getInstance().setDialogueText(this.dialogue);
+                    DialoguePanel.getInstance().setDialogueText(this.taskSubmitDialogue);
                     DialoguePanel.getInstance().setBackgroundBitmap("duihuakuang_png");
                     //TaskService.getInstance().canFinish(taskId);
                     x++;
@@ -341,10 +351,13 @@ class DialoguePanel extends egret.DisplayObjectContainer{
     }
 
     public setDialogueText(dialogue : string[]){
+        this.dialogue = [];
         for( var i = 0 ; i < dialogue.length; i++){
             this.dialogue[i] = dialogue[i];
         }
-        this.textField.text = this.dialogue[0];
+        for(var j = 0 ; j < this.dialogue.length;j++){
+        this.textField.text = this.dialogue[j] + "\n";
+        }
     }
 
     public setIfAccept(b : boolean){

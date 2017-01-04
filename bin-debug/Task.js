@@ -230,8 +230,8 @@ function creatTaskCondition(id) {
 }
 function creatTask(id) {
     var data = {
-        "task_00": { name: "任务01", desc: "点击NPC_1,在NPC_2交任务", total: 1, status: TaskStatus.ACCEPTABLE, condition: "npctalk", fromNpcId: "npc_0", toNpcId: "npc_1", preTaskListId: ["null"], rewardEquipmentId: "W002" },
-        "task_01": { name: "任务02", desc: "点击NPC_2,杀死一只史莱姆后点NPC_2交任务", total: 1, status: TaskStatus.UNACCEPTABLE, condition: "killmonster", fromNpcId: "npc_1", toNpcId: "npc_1", preTaskListId: ["task_00"], rewardEquipmentId: "W001" },
+        "task_00": { name: "任务01", desc: "点击NPC_1,在NPC_2交任务", total: 1, status: TaskStatus.ACCEPTABLE, condition: "npctalk", fromNpcId: "npc_0", toNpcId: "npc_1", preTaskListId: ["null"], rewardEquipmentId: "W001" },
+        "task_01": { name: "任务02", desc: "点击NPC_2,杀死一只史莱姆后点NPC_2交任务", total: 1, status: TaskStatus.UNACCEPTABLE, condition: "killmonster", fromNpcId: "npc_1", toNpcId: "npc_1", preTaskListId: ["task_00"], rewardEquipmentId: "W002" },
     };
     var info = data[id];
     if (!info) {
@@ -321,7 +321,25 @@ var TaskPanel = (function (_super) {
                 //     var texture: egret.Texture = RES.getRes("wancheng_png");
                 //     //this.button.texture = texture;
                 // }
-                this.show[i] = "任务名 ：" + this.taskList[i].name + " :\n " + "任务内容：" + this.taskList[i].desc + " :\n " + " 任务状态 ： " + this.taskList[i].status;
+                var statusText = "";
+                switch (this.taskList[i].status) {
+                    case TaskStatus.UNACCEPTABLE:
+                        statusText = "不可接";
+                        break;
+                    case TaskStatus.ACCEPTABLE:
+                        statusText = "可接";
+                        break;
+                    case TaskStatus.DURING:
+                        statusText = "进行中";
+                        break;
+                    case TaskStatus.CAN_SUBMIT:
+                        statusText = "可交付";
+                        break;
+                    case TaskStatus.SUBMITTED:
+                        statusText = "已完成";
+                        break;
+                }
+                this.show[i] = "任务名 ：" + this.taskList[i].name + " :\n " + "任务内容：" + this.taskList[i].desc + " :\n " + " 任务状态 ： " + statusText;
                 this.duringTaskId = this.taskList[i].id;
                 this.textField.text = "";
                 for (var i = 0; i < this.show.length; i++) {

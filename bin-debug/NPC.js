@@ -4,6 +4,8 @@ var NPC = (function (_super) {
         var _this = this;
         _super.call(this);
         this.dialogue = [];
+        this.taskAcceptDialogue = [];
+        this.taskSubmitDialogue = [];
         //private canFinishedTaskId : string = null;
         this.taskList = {};
         this.canAcceptTaskList = {};
@@ -55,6 +57,12 @@ var NPC = (function (_super) {
         this.emoji.y = 20;
     }
     var d = __define,c=NPC,p=c.prototype;
+    p.setTaskAcceptDialogue = function (acceptDialogue) {
+        this.taskAcceptDialogue = acceptDialogue;
+    };
+    p.setTaskSubmitDialogue = function (submitDialogue) {
+        this.taskSubmitDialogue = submitDialogue;
+    };
     p.onChange = function (task) {
         if (this.NPCId == task.fromNpcId && task.status == TaskStatus.ACCEPTABLE) {
             this.emoji.alpha = 1;
@@ -154,7 +162,7 @@ var NPC = (function (_super) {
                 DialoguePanel.getInstance().setDuringTask(this.canSumbitTaskList[taskId]);
                 //DialoguePanel.getInstance().setDuringTaskConditionType(this.canSumbitTaskList[taskId].conditionType);
                 //DialoguePanel.getInstance().setDuringTaskCondition(this.taskList[taskId].getCondition());
-                DialoguePanel.getInstance().setDialogueText(this.dialogue);
+                DialoguePanel.getInstance().setDialogueText(this.taskSubmitDialogue);
                 DialoguePanel.getInstance().setBackgroundBitmap("duihuakuang_png");
                 TaskService.getInstance().canFinish(taskId);
                 return;
@@ -170,7 +178,7 @@ var NPC = (function (_super) {
                 DialoguePanel.getInstance().setDuringTask(this.taskList[taskId]);
                 //DialoguePanel.getInstance().setDuringTaskConditionType(this.taskList[taskId].conditionType);
                 //DialoguePanel.getInstance().setDuringTaskCondition(this.taskList[taskId].getCondition());
-                DialoguePanel.getInstance().setDialogueText(this.dialogue);
+                DialoguePanel.getInstance().setDialogueText(this.taskAcceptDialogue);
                 DialoguePanel.getInstance().setBackgroundBitmap("duihuakuang_png");
                 //TaskService.getInstance().canAccept(taskId);
                 x++;
@@ -185,7 +193,7 @@ var NPC = (function (_super) {
                 DialoguePanel.getInstance().setDuringTask(this.taskList[taskId]);
                 //DialoguePanel.getInstance().setDuringTaskConditionType(this.taskList[taskId].conditionType);
                 //DialoguePanel.getInstance().setDuringTaskCondition(this.taskList[taskId].getCondition());
-                DialoguePanel.getInstance().setDialogueText(this.dialogue);
+                DialoguePanel.getInstance().setDialogueText(this.taskSubmitDialogue);
                 DialoguePanel.getInstance().setBackgroundBitmap("duihuakuang_png");
                 //TaskService.getInstance().canFinish(taskId);
                 x++;
@@ -263,10 +271,13 @@ var DialoguePanel = (function (_super) {
         this.duringTaskCondition = taskCondition;
     };
     p.setDialogueText = function (dialogue) {
+        this.dialogue = [];
         for (var i = 0; i < dialogue.length; i++) {
             this.dialogue[i] = dialogue[i];
         }
-        this.textField.text = this.dialogue[0];
+        for (var j = 0; j < this.dialogue.length; j++) {
+            this.textField.text = this.dialogue[j] + "\n";
+        }
     };
     p.setIfAccept = function (b) {
         this.ifAccept = b;

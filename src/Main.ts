@@ -161,7 +161,11 @@ class Main extends egret.DisplayObjectContainer {
     private NPC01 : NPC;
     private NPC02 : NPC;
     private Npc01Dialogue : string[] = ["你好我是NPC01"]
+    private Npc01AcceptDialogue : string[] = ["你好我这里有个很简单的对话任务，完成以后就能拿到传说装备yo~,考虑一下吧"]
+
     private Npc02Dialogue : string[] = ["你好我是NPC02"]
+    private Npc02AcceptDialogue : string[] = ["你好我这里有个很简单的杀怪任务，完成以后也能拿到传说装备yo~,考虑一下吧"]
+    private Npc02SubmitDialogue : string[] = ["你变强了！！！\n点击完成任务后，奖励道具已经自动为您装备，请打开任务面板检查"]
     private dialoguePanel : DialoguePanel; 
     public screenService :ScreenService;
 
@@ -182,7 +186,7 @@ class Main extends egret.DisplayObjectContainer {
 
     private npcList : NPC[] = [];
 
-    private monsterList : Monster [] = [];
+    private monsterIdList : string [] = ["slime01","slime02"];
 
     public canMove : boolean;
 
@@ -195,6 +199,12 @@ class Main extends egret.DisplayObjectContainer {
     private slime : Monster;
 
     public monsterAttacking : Monster;
+
+    private disx = 0;
+    private disy = 0;
+
+    private monsterService : MonsterService;
+
 
 
     //private equipmentInformationPanel : EquipmentInformationPanel;
@@ -246,19 +256,30 @@ class Main extends egret.DisplayObjectContainer {
 
 
         this.NPC01 = new NPC("npc_0","NPC_Man_01_png",this.Npc01Dialogue);
+        this.NPC01.setTaskAcceptDialogue(this.Npc01AcceptDialogue);
         this.npcList.push(this.NPC01);
+
         this.NPC02 = new NPC("npc_1","NPC_Man_02_png",this.Npc02Dialogue);
+        this.NPC02.setTaskAcceptDialogue(this.Npc02AcceptDialogue);
+        this.NPC02.setTaskSubmitDialogue(this.Npc02SubmitDialogue);
         this.npcList.push(this.NPC02);
         TaskService.getInstance().addObserver(this.NPC01);
         TaskService.getInstance().addObserver(this.NPC02);
 
         this.screenService = new ScreenService();
-        this.slime = new Monster("Slime01","slime","Slime_png",100);
-        this.addChild(this.slime);
-        this.slime.x = 64 * 5;
-        this.slime.y = 64 * 4;
-        this.slime.touchEnabled = true;
-        this.monsterList.push(this.slime);
+        //this.slime = new Monster("Slime01","slime","Slime_png",100);
+        for(var id of this.monsterIdList){
+        var temp = creatMonster(id);
+        this.addChild(temp);
+        temp.x = temp.posX;
+        temp.y = temp.posY;
+        MonsterService.getInstance().addMonster(temp);
+        }
+        // this.addChild(this.slime);
+        // this.slime.x = 64 * 5;
+        // this.slime.y = 64 * 4;
+        // this.slime.touchEnabled = true;
+        // this.monsterList.push(this.slime);
 
 
 
@@ -297,7 +318,7 @@ class Main extends egret.DisplayObjectContainer {
 
          this.user = new User("Player01",1);
          this.hero = new Hero("H001","FemaleSaberHero01",Quality.ORAGE,1,"FemaleSaberHero01_png",HeroType.SABER);
-         this.sword = new Weapon("W001","Leagendsword01",Quality.ORAGE,WeaponType.HANDSWORD,"OrangeSword01_png");
+         this.sword = new Weapon("W001","LeagendSword01",Quality.ORAGE,WeaponType.HANDSWORD,"OrangeSword01_png");
          this.lance = new Weapon("W002","LeagendLance01",Quality.ORAGE,WeaponType.LANCE,"OrageLance01_png")
          this.helment = new Armor("A001","Purplrhelment01",Quality.PURPLE,ArmorType.LIGHTARMOR,"PurpleHelmet01_png");
          this.corseler = new Armor("A002","GreenCorseler01",Quality.GREEN,ArmorType.LIGHTARMOR,"GreenCorseler01_png");
@@ -389,7 +410,8 @@ class Main extends egret.DisplayObjectContainer {
                 NPC.npcIsChoose = npc;
             }
 
-            for(var monster of this.monsterList){
+            for(var monsterId of this.monsterIdList){
+                var monster = MonsterService.getInstance().getMonster(monsterId);
                 if(monster.x / 64 == this.tileX && monster.y / 64 == this.tileY){
                 this.ifFight = true;
                 this.monsterAttacking = monster;
@@ -410,6 +432,10 @@ class Main extends egret.DisplayObjectContainer {
 
             for(let i = 0 ; i < this.astar.pathArray.length ; i++){
                 console.log(this.astar.pathArray[i].x + " And " + this.astar.pathArray[i].y);
+            }
+            if(this.astar.pathArray.length > 0){
+            this.disx = Math.abs(this.astar.pathArray[this.currentPath].x - this.Player.PersonBitmap.x);
+            this.disy = Math.abs(this.astar.pathArray[this.currentPath].y - this.Player.PersonBitmap.y);
             }
             // egret.Ticker.getInstance().register(()=>{
             // if(!this.IfOnGoal(this.map01.getTile(1,0))){
@@ -438,6 +464,9 @@ class Main extends egret.DisplayObjectContainer {
                 this.userPanelIsOn = true;
             }
 
+            if(this.commandList._list.length > 0)
+            this.commandList.cancel();
+
             
             //this.commandList.addCommand(new FightCommand(this.Player,this));
 
@@ -446,7 +475,7 @@ class Main extends egret.DisplayObjectContainer {
 
             //this.commandList.addCommand(new FightCommand(this.Player,this));
 
-            if(NPC.npcIsChoose != null)
+            if(NPC.npcIsChoose != null && !this.userPanelIsOn)
             this.commandList.addCommand(new TalkCommand(this,NPC.npcIsChoose))
 
             if(this.ifFight)
@@ -513,13 +542,15 @@ class Main extends egret.DisplayObjectContainer {
 
    public PlayerMove(){
        var self:any = this;
+       var getDistance;
        
     egret.Ticker.getInstance().register(()=>{
     if(this.ifStartMove && self.ifFindAWay){
        if(self.currentPath < self.astar.pathArray.length - 1){ 
-            var distanceX = self.astar.pathArray[self.currentPath + 1].x - self.astar.pathArray[self.currentPath].x;
-            var distanceY = self.astar.pathArray[self.currentPath + 1].y - self.astar.pathArray[self.currentPath].y;
-            //console.log(distanceX + "And" + distanceY);
+            var distanceX = self.astar.pathArray[self.currentPath + 1].x - self.astar.pathArray[self.currentPath].x - this.disx;
+            var distanceY = self.astar.pathArray[self.currentPath + 1].y - self.astar.pathArray[self.currentPath].y - this.disy;
+
+            //console.log(this.disx + "And" + this.disy);
 
             if(distanceX > 0){
             self.Player.SetRightOrLeftState(new GoRightState(),self);
@@ -703,7 +734,7 @@ class Main extends egret.DisplayObjectContainer {
 
                     // if(self.IfOnGoal(self.map01.endTile)){
                     //  self.Player.SetState(new IdleState(),self);
-                    //  WalkCommand.canFinish = true;
+                    //  WalkCommand.canFinish = false;
                     //  //console.log("PA");
                     // }
 
@@ -759,6 +790,7 @@ class Main extends egret.DisplayObjectContainer {
         this.user.package.InPackage(temp);
         }
         this.hero.addWeapon(EquipmentServer.getInstance().getWeapon(weaponId));
+        console.log(weaponId);
     }
 
     public HeroEquipHelement(helmentId : string){

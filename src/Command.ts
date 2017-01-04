@@ -109,7 +109,7 @@ class TalkCommand implements Command{
     }
 
     cancel(callback: Function){
-        this._tmain.canMove = false;
+        this._tmain.canMove = true;
         callback();
     }
 
@@ -120,7 +120,7 @@ class CommandList {
 
 
 
-    private _list: Command[] = [];
+    public _list: Command[] = [];
     private currentCommand: Command;
     private _frozen = false;
 
@@ -131,12 +131,12 @@ class CommandList {
     cancel() {
         this._frozen = true;
         var command = this.currentCommand;
-        egret.setTimeout(() => {
-            if (this._frozen) {
-                this._frozen = false;
-            }
+        // egret.setTimeout(() => {
+        //     if (this._frozen) {
+        //         this._frozen = false;
+        //     }
 
-        }, this, 2000);
+        // }, this, 100);
         if (command) {
             command.cancel(() => {
                 this._frozen = false;

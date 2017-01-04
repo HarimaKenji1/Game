@@ -11,8 +11,10 @@ class Monster extends egret.DisplayObjectContainer{
     private maxHP : number;
     private currentHP : number;
     private state : MonsterState;
+    public posX : number;
+    public posY : number;
 
-    constructor(id,name,pictureId,maxHP){
+    constructor(id,name,pictureId,maxHP,x,y){
         super();
         this.width = 64;
         this.height = 64;
@@ -27,6 +29,8 @@ class Monster extends egret.DisplayObjectContainer{
         this.maxHP = maxHP;
         this.currentHP = maxHP;
         this.state = MonsterState.LIVE;
+        this.posX = x;
+        this.posY = y;
     }
 
     public BeenAttacked(damage : number){
@@ -44,3 +48,41 @@ class Monster extends egret.DisplayObjectContainer{
         return this.state;
     }
 }
+
+class MonsterService{
+    private static instance;
+    private monsterList: {
+        [index: string]: Monster
+    } = {};
+    static getInstance(): MonsterService {
+        if (MonsterService.instance == null) {
+            MonsterService.instance = new MonsterService();
+        }
+
+        return MonsterService.instance;
+    }
+
+    public addMonster(monster: Monster) {
+        this.monsterList[monster.monsterID] = monster;
+    }
+
+    public getMonster(id : string){
+        return this.monsterList[id];
+    }
+
+    
+
+
+}
+
+function creatMonster(id:string){
+        var data = {
+            "slime01":{id:"slime01",name:"slime",pictureId:"Slime_png",maxHP:100,x:64 * 5,y:64*4},
+            "slime02":{id:"slime02",name:"slime",pictureId:"Slime_png",maxHP:100,x:64 * 4,y:64*6},
+        }
+        var info = data[id];
+        if (!info) {
+            console.error('missing monster')
+        }
+        return new Monster(info.id,info.name,info.pictureId,info.maxHP,info.x,info.y);
+    }
