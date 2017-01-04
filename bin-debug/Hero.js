@@ -39,6 +39,13 @@ var ArmorType;
     ArmorType[ArmorType["HEAVYARMOR"] = 2.4] = "HEAVYARMOR";
     ArmorType[ArmorType["NOTHINGTOWEAR"] = 0.2] = "NOTHINGTOWEAR";
 })(ArmorType || (ArmorType = {}));
+var EquipementType;
+(function (EquipementType) {
+    EquipementType[EquipementType["WEAPON"] = 1] = "WEAPON";
+    EquipementType[EquipementType["HELMENT"] = 2] = "HELMENT";
+    EquipementType[EquipementType["CORSELER"] = 3] = "CORSELER";
+    EquipementType[EquipementType["SHOES"] = 4] = "SHOES";
+})(EquipementType || (EquipementType = {}));
 var JewelPromotion;
 (function (JewelPromotion) {
     JewelPromotion[JewelPromotion["ATTACKPRMOTE"] = 1] = "ATTACKPRMOTE";
@@ -67,6 +74,7 @@ var User = (function () {
         this.userName = "";
         this.userName = name;
         this.level = level;
+        this.package = new Package();
     }
     var d = __define,c=User,p=c.prototype;
     p.getTotalExp = function () {
@@ -138,6 +146,32 @@ var Hero = (function () {
     };
     p.addShoes = function (shoes) {
         this.__armorOnEquip[2] = shoes;
+    };
+    p.getEquipment = function (type) {
+        var temp;
+        switch (type) {
+            case EquipementType.WEAPON:
+                if (this.__weaponsOnEquip[0])
+                    temp = this.__weaponsOnEquip[0];
+                else
+                    temp = null;
+            case EquipementType.HELMENT:
+                if (this.__armorOnEquip[0])
+                    temp = this.__armorOnEquip[0];
+                else
+                    temp = null;
+            case EquipementType.CORSELER:
+                if (this.__armorOnEquip[1])
+                    temp = this.__armorOnEquip[1];
+                else
+                    temp = null;
+            case EquipementType.SHOES:
+                if (this.__armorOnEquip[2])
+                    temp = this.__armorOnEquip[2];
+                else
+                    temp = null;
+        }
+        return temp;
     };
     //@Cache
     p.getMaxHP = function () {
@@ -383,7 +417,10 @@ var GetColor = (function () {
 egret.registerClass(GetColor,'GetColor');
 var EquipmentServer = (function () {
     function EquipmentServer() {
-        this.equipmentList = {};
+        this.weaponList = {};
+        this.helmentList = {};
+        this.armorList = {};
+        this.shoesList = {};
     }
     var d = __define,c=EquipmentServer,p=c.prototype;
     EquipmentServer.getInstance = function () {
@@ -392,8 +429,29 @@ var EquipmentServer = (function () {
         }
         return EquipmentServer.instance;
     };
-    p.addEquipment = function (equipment) {
-        this.equipmentList[equipment.equipmentID] = equipment;
+    p.addWeapon = function (weapon) {
+        this.weaponList[weapon.equipmentID] = weapon;
+    };
+    p.getWeapon = function (id) {
+        return this.weaponList[id];
+    };
+    p.addHelement = function (armor) {
+        this.helmentList[armor.armorID] = armor;
+    };
+    p.getHelement = function (id) {
+        return this.helmentList[id];
+    };
+    p.addArmor = function (armor) {
+        this.armorList[armor.armorID] = armor;
+    };
+    p.getArmor = function (id) {
+        return this.armorList[id];
+    };
+    p.addShoe = function (armor) {
+        this.shoesList[armor.armorID] = armor;
+    };
+    p.getShoe = function (id) {
+        return this.shoesList[id];
     };
     return EquipmentServer;
 }());

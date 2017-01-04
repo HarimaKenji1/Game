@@ -14,6 +14,7 @@ var game_file_list = [
 	"bin-debug/Hero.js",
 	"bin-debug/LoadingUI.js",
 	"bin-debug/Main.js",
+	"bin-debug/Monstor.js",
 	"bin-debug/NPC.js",
 	"bin-debug/Package.js",
 	"bin-debug/Task.js",

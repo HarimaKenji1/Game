@@ -155,7 +155,7 @@ class Main extends egret.DisplayObjectContainer {
     private playerBitX : number;
     private playerBitY : number;
     private task01 : Task;
-    //private task02 : Task = new Task("task_");
+    private task02 : Task;
     private taskService : TaskService /*= TaskService.getInstance() */;
     private taskPanel : TaskPanel;
     private NPC01 : NPC;
@@ -163,11 +163,12 @@ class Main extends egret.DisplayObjectContainer {
     private Npc01Dialogue : string[] = ["你好我是NPC01"]
     private Npc02Dialogue : string[] = ["你好我是NPC02"]
     private dialoguePanel : DialoguePanel; 
-    private screenService :ScreenService;
+    public screenService :ScreenService;
 
     private user : User ;
     private hero : Hero;
     private sword : Weapon;
+    private lance : Weapon;
     private helment : Armor;
     private corseler : Armor;
     private shoes : Armor;
@@ -181,11 +182,19 @@ class Main extends egret.DisplayObjectContainer {
 
     private npcList : NPC[] = [];
 
+    private monsterList : Monster [] = [];
+
     public canMove : boolean;
 
     public equipmentServer : EquipmentServer;
 
     public userPanelIsOn : boolean;
+
+    public ifFight : boolean;
+
+    private slime : Monster;
+
+    public monsterAttacking : Monster;
 
 
     //private equipmentInformationPanel : EquipmentInformationPanel;
@@ -206,6 +215,7 @@ class Main extends egret.DisplayObjectContainer {
 
         this.canMove = true;
         this.userPanelIsOn = false;
+        this.ifFight = false;
         this.Player  = new Person();
         var stageW:number = this.stage.stageWidth;
         var stageH:number = this.stage.stageHeight;
@@ -218,8 +228,11 @@ class Main extends egret.DisplayObjectContainer {
         
         
         this.task01 = creatTask("task_00");
+        this.task01.setMain(this);
         TaskService.getInstance().addTask(this.task01);
-        TaskService.getInstance().addTask(creatTask("task_01"));
+        this.task02 = creatTask("task_01");
+        this.task02.setMain(this);
+        TaskService.getInstance().addTask(this.task02);
         this.taskPanel = new TaskPanel();
         TaskService.getInstance().addObserver(this.taskPanel);
         
@@ -240,15 +253,13 @@ class Main extends egret.DisplayObjectContainer {
         TaskService.getInstance().addObserver(this.NPC02);
 
         this.screenService = new ScreenService();
-        var slime = this.createBitmapByName("Slime_png");
-        this.addChild(slime);
-        slime.x = 64 * 5;
-        slime.y = 64 * 4;
-        slime.touchEnabled = true;
+        this.slime = new Monster("Slime01","slime","Slime_png",100);
+        this.addChild(this.slime);
+        this.slime.x = 64 * 5;
+        this.slime.y = 64 * 4;
+        this.slime.touchEnabled = true;
+        this.monsterList.push(this.slime);
 
-        slime.addEventListener(egret.TouchEvent.TOUCH_TAP,(e : egret.TouchEvent)=>{
-            this.screenService.monsterBeenKilled("task_01");
-        },this)
 
 
         this.addChild(this.NPC01);
@@ -287,7 +298,7 @@ class Main extends egret.DisplayObjectContainer {
          this.user = new User("Player01",1);
          this.hero = new Hero("H001","FemaleSaberHero01",Quality.ORAGE,1,"FemaleSaberHero01_png",HeroType.SABER);
          this.sword = new Weapon("W001","Leagendsword01",Quality.ORAGE,WeaponType.HANDSWORD,"OrangeSword01_png");
-
+         this.lance = new Weapon("W002","LeagendLance01",Quality.ORAGE,WeaponType.LANCE,"OrageLance01_png")
          this.helment = new Armor("A001","Purplrhelment01",Quality.PURPLE,ArmorType.LIGHTARMOR,"PurpleHelmet01_png");
          this.corseler = new Armor("A002","GreenCorseler01",Quality.GREEN,ArmorType.LIGHTARMOR,"GreenCorseler01_png");
          this.shoes = new Armor("A003","BlueShoes01",Quality.BLUE,ArmorType.LIGHTARMOR,"BlueShoes01_png");
@@ -306,11 +317,12 @@ class Main extends egret.DisplayObjectContainer {
          this.user.addHeros(this.hero);
 
          EquipmentServer.getInstance();
-         EquipmentServer.getInstance().addEquipment(this.sword);
-         EquipmentServer.getInstance().addEquipment(this.helment);
-         EquipmentServer.getInstance().addEquipment(this.corseler);
-         EquipmentServer.getInstance().addEquipment(this.shoes);
-         EquipmentServer.getInstance().addEquipment(new Weapon("W002","LeagendLance01",Quality.ORAGE,WeaponType.LANCE,"OrageLance01_png"));
+         EquipmentServer.getInstance().addWeapon(this.sword);
+         EquipmentServer.getInstance().addWeapon(this.lance);
+         EquipmentServer.getInstance().addArmor(this.helment);
+         EquipmentServer.getInstance().addArmor(this.corseler);
+         EquipmentServer.getInstance().addArmor(this.shoes);
+         //EquipmentServer.getInstance().addWeapon(new Weapon("W002","LeagendLance01",Quality.ORAGE,WeaponType.LANCE,"OrageLance01_png"));
 
 
 
@@ -340,7 +352,7 @@ class Main extends egret.DisplayObjectContainer {
          this.userPanelButton.addEventListener(egret.TouchEvent.TOUCH_BEGIN,(e : egret.TouchEvent)=>{
             this.addChild(this.userPanel);
             this.userPanel.showHeroInformation(this.hero);
-            console.log("upbdown");
+            //console.log("upbdown");
         },this)
          
 
@@ -355,7 +367,8 @@ class Main extends egret.DisplayObjectContainer {
             //this.ifStartMove = true;
             //var tempTile : Tile;
             NPC.npcIsChoose = null;
-            if(this.userPanelIsOn){
+            this.ifFight = false;
+            if(this.userPanelIsOn && (e.stageX < this.userPanel.x || e.stageX > this.userPanel.x + this.userPanel.width || e.stageY < this.userPanel.y || e.stageY > this.userPanel.y + this.userPanel.height) ){
             this.removeChild(this.userPanel);
             this.userPanelIsOn = false;
             }
@@ -374,6 +387,13 @@ class Main extends egret.DisplayObjectContainer {
             for(var npc of this.npcList){
                 if(npc.x / 64 == this.tileX && npc.y /64 == this.tileY)
                 NPC.npcIsChoose = npc;
+            }
+
+            for(var monster of this.monsterList){
+                if(monster.x / 64 == this.tileX && monster.y / 64 == this.tileY){
+                this.ifFight = true;
+                this.monsterAttacking = monster;
+                }
             }
             
             // if(this.map01.getTile(this.tileX,this.tileY).tileData.walkable)
@@ -419,17 +439,18 @@ class Main extends egret.DisplayObjectContainer {
             }
 
             
-            this.commandList.addCommand(new FightCommand(this.Player,this));
+            //this.commandList.addCommand(new FightCommand(this.Player,this));
 
             if(this.canMove && !this.userPanelIsOn)
             this.commandList.addCommand(new WalkCommand(this));
 
-            this.commandList.addCommand(new FightCommand(this.Player,this));
+            //this.commandList.addCommand(new FightCommand(this.Player,this));
 
             if(NPC.npcIsChoose != null)
             this.commandList.addCommand(new TalkCommand(this,NPC.npcIsChoose))
 
-            this.commandList.addCommand(new FightCommand(this.Player,this));
+            if(this.ifFight)
+            this.commandList.addCommand(new FightCommand(this.Player,this,this.monsterAttacking,this.hero.getAttack()));
 
             this.commandList.execute();
         },this)
@@ -731,6 +752,38 @@ class Main extends egret.DisplayObjectContainer {
     // private changeDescription(textfield:egret.TextField, textFlow:Array<egret.ITextElement>):void {
     //     textfield.textFlow = textFlow;
     // }
+
+    public HeroEquipWeapon(weaponId : string){
+        var temp = this.hero.getEquipment(EquipementType.WEAPON)
+        if(temp){
+        this.user.package.InPackage(temp);
+        }
+        this.hero.addWeapon(EquipmentServer.getInstance().getWeapon(weaponId));
+    }
+
+    public HeroEquipHelement(helmentId : string){
+        var temp = this.hero.getEquipment(EquipementType.HELMENT)
+        if(temp){
+        this.user.package.InPackage(temp);
+        }
+        this.hero.addHelment(EquipmentServer.getInstance().getHelement(helmentId));
+    }
+
+    public HeroEquipArmor(Id : string){
+        var temp = this.hero.getEquipment(EquipementType.CORSELER)
+        if(temp){
+        this.user.package.InPackage(temp);
+        }
+        this.hero.addCorseler(EquipmentServer.getInstance().getArmor(Id));
+    }
+
+    public HeroEquipShoes(Id : string){
+        var temp = this.hero.getEquipment(EquipementType.SHOES)
+        if(temp){
+        this.user.package.InPackage(temp);
+        }
+        this.hero.addShoes(EquipmentServer.getInstance().getShoe(Id));
+    }
 }
 
 

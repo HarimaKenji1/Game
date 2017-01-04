@@ -40,10 +40,14 @@ class FightCommand implements Command{
     private _hasBeenCancelled = false;
     private player : Person;
     private _tmain : Main;
+    private target : Monster;
+    private damage;
 
-    constructor(player : Person,main : Main){
+    constructor(player : Person,main : Main,monster : Monster,damage : number){
         this.player = player;
         this._tmain = main;
+        this.target = monster;
+        this.damage = damage;
     }
 
     execute(callback: Function){
@@ -52,7 +56,12 @@ class FightCommand implements Command{
         egret.setTimeout(() => {
             if (!this._hasBeenCancelled) {
                 console.log("结束战斗")
+                this.target.BeenAttacked(this.damage);
                 this.player.SetState(new IdleState(),this._tmain);
+                if(this._tmain.monsterAttacking.getMonsterState() == MonsterState.DEAD){
+                    this._tmain.screenService.monsterBeenKilled("task_01");
+                    this._tmain.removeChild(this._tmain.monsterAttacking);
+                }
                 callback();
             }
         }, this, 500)

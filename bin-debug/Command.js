@@ -26,10 +26,12 @@ var WalkCommand = (function () {
 }());
 egret.registerClass(WalkCommand,'WalkCommand',["Command"]);
 var FightCommand = (function () {
-    function FightCommand(player, main) {
+    function FightCommand(player, main, monster, damage) {
         this._hasBeenCancelled = false;
         this.player = player;
         this._tmain = main;
+        this.target = monster;
+        this.damage = damage;
     }
     var d = __define,c=FightCommand,p=c.prototype;
     p.execute = function (callback) {
@@ -39,7 +41,12 @@ var FightCommand = (function () {
         egret.setTimeout(function () {
             if (!_this._hasBeenCancelled) {
                 console.log("结束战斗");
+                _this.target.BeenAttacked(_this.damage);
                 _this.player.SetState(new IdleState(), _this._tmain);
+                if (_this._tmain.monsterAttacking.getMonsterState() == MonsterState.DEAD) {
+                    _this._tmain.screenService.monsterBeenKilled("task_01");
+                    _this._tmain.removeChild(_this._tmain.monsterAttacking);
+                }
                 callback();
             }
         }, this, 500);

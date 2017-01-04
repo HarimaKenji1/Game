@@ -34,6 +34,13 @@ enum ArmorType{
     NOTHINGTOWEAR = 0.2
 }
 
+enum EquipementType{
+    WEAPON = 1,
+    HELMENT = 2,
+    CORSELER = 3,
+    SHOES = 4
+}
+
 enum JewelPromotion{
     ATTACKPRMOTE = 1,
     DEFENCEPRMOTE = 2,
@@ -61,10 +68,12 @@ class User{
     __heros : Hero [] = [];
     __herosInTeam : Hero[] = [];
     userName : string = "";
+    package : Package;
 
     constructor(name : string , level : number){
        this.userName = name;
        this.level = level;
+       this.package = new Package();
     }
 
     @Cache
@@ -147,6 +156,29 @@ class Hero{
 
     public addShoes(shoes : Armor){
         this.__armorOnEquip[2] = shoes;
+    }
+
+    public getEquipment(type : EquipementType){
+        var temp;
+        switch(type){
+            case EquipementType.WEAPON:
+                if(this.__weaponsOnEquip[0])
+                temp =  this.__weaponsOnEquip[0];
+                else temp = null;
+            case EquipementType.HELMENT:
+                if(this.__armorOnEquip[0])
+                temp = this.__armorOnEquip[0];
+                else temp = null;
+            case EquipementType.CORSELER:
+                if(this.__armorOnEquip[1])
+                temp = this.__armorOnEquip[1];
+                else temp = null;
+            case EquipementType.SHOES:
+                if(this.__armorOnEquip[2])
+                temp = this.__armorOnEquip[2];
+                else temp = null;
+        }
+        return temp;
     }
 
     //@Cache
@@ -414,9 +446,19 @@ class GetColor{
 
 class EquipmentServer{
     private static instance;
-    private equipmentList: {
-        [index: string]: Equipment
+    private weaponList: {
+        [index: string]: Weapon
     } = {};
+    private helmentList: {
+        [index: string]: Armor
+    } = {};
+    private armorList: {
+        [index: string]: Armor
+    } = {};
+    private shoesList: {
+        [index: string]: Armor
+    } = {};
+
     static getInstance(): EquipmentServer {
         if (EquipmentServer.instance == null) {
             EquipmentServer.instance = new EquipmentServer();
@@ -425,7 +467,35 @@ class EquipmentServer{
         return EquipmentServer.instance;
     }
 
-     public addEquipment(equipment: Equipment) {
-        this.equipmentList[equipment.equipmentID] = equipment;
+     public addWeapon(weapon: Weapon) {
+        this.weaponList[weapon.equipmentID] = weapon;
+    }
+
+    public getWeapon(id : string):Weapon{
+        return this.weaponList[id];
+    }
+
+    public addHelement(armor : Armor){
+        this.helmentList[armor.armorID] = armor;
+    }
+
+    public getHelement(id : string):Armor{
+        return this.helmentList[id];
+    }
+
+    public addArmor(armor : Armor){
+        this.armorList[armor.armorID] = armor;
+    }
+
+    public getArmor(id : string):Armor{
+        return this.armorList[id];
+    }
+
+    public addShoe(armor : Armor){
+        this.shoesList[armor.armorID] = armor;
+    }
+
+    public getShoe(id : string):Armor{
+        return this.shoesList[id];
     }
 }

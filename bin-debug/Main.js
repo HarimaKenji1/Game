@@ -58,6 +58,7 @@ var Main = (function (_super) {
         this.Npc01Dialogue = ["你好我是NPC01"];
         this.Npc02Dialogue = ["你好我是NPC02"];
         this.npcList = [];
+        this.monsterList = [];
         this.addEventListener(egret.Event.ADDED_TO_STAGE, this.onAddToStage, this);
     }
     var d = __define,c=Main,p=c.prototype;
@@ -140,6 +141,7 @@ var Main = (function (_super) {
         this.commandList = new CommandList();
         this.canMove = true;
         this.userPanelIsOn = false;
+        this.ifFight = false;
         this.Player = new Person();
         var stageW = this.stage.stageWidth;
         var stageH = this.stage.stageHeight;
@@ -148,8 +150,11 @@ var Main = (function (_super) {
         TaskService.getInstance();
         //TaskService.getInstance().init();
         this.task01 = creatTask("task_00");
+        this.task01.setMain(this);
         TaskService.getInstance().addTask(this.task01);
-        TaskService.getInstance().addTask(creatTask("task_01"));
+        this.task02 = creatTask("task_01");
+        this.task02.setMain(this);
+        TaskService.getInstance().addTask(this.task02);
         this.taskPanel = new TaskPanel();
         TaskService.getInstance().addObserver(this.taskPanel);
         this.addChild(this.taskPanel);
@@ -162,14 +167,12 @@ var Main = (function (_super) {
         TaskService.getInstance().addObserver(this.NPC01);
         TaskService.getInstance().addObserver(this.NPC02);
         this.screenService = new ScreenService();
-        var slime = this.createBitmapByName("Slime_png");
-        this.addChild(slime);
-        slime.x = 64 * 5;
-        slime.y = 64 * 4;
-        slime.touchEnabled = true;
-        slime.addEventListener(egret.TouchEvent.TOUCH_TAP, function (e) {
-            _this.screenService.monsterBeenKilled("task_01");
-        }, this);
+        this.slime = new Monster("Slime01", "slime", "Slime_png", 100);
+        this.addChild(this.slime);
+        this.slime.x = 64 * 5;
+        this.slime.y = 64 * 4;
+        this.slime.touchEnabled = true;
+        this.monsterList.push(this.slime);
         this.addChild(this.NPC01);
         this.NPC01.x = 128;
         this.NPC01.y = 128;
@@ -195,6 +198,7 @@ var Main = (function (_super) {
         this.user = new User("Player01", 1);
         this.hero = new Hero("H001", "FemaleSaberHero01", Quality.ORAGE, 1, "FemaleSaberHero01_png", HeroType.SABER);
         this.sword = new Weapon("W001", "Leagendsword01", Quality.ORAGE, WeaponType.HANDSWORD, "OrangeSword01_png");
+        this.lance = new Weapon("W002", "LeagendLance01", Quality.ORAGE, WeaponType.LANCE, "OrageLance01_png");
         this.helment = new Armor("A001", "Purplrhelment01", Quality.PURPLE, ArmorType.LIGHTARMOR, "PurpleHelmet01_png");
         this.corseler = new Armor("A002", "GreenCorseler01", Quality.GREEN, ArmorType.LIGHTARMOR, "GreenCorseler01_png");
         this.shoes = new Armor("A003", "BlueShoes01", Quality.BLUE, ArmorType.LIGHTARMOR, "BlueShoes01_png");
@@ -211,11 +215,12 @@ var Main = (function (_super) {
         this.user.addHeroInTeam(this.hero);
         this.user.addHeros(this.hero);
         EquipmentServer.getInstance();
-        EquipmentServer.getInstance().addEquipment(this.sword);
-        EquipmentServer.getInstance().addEquipment(this.helment);
-        EquipmentServer.getInstance().addEquipment(this.corseler);
-        EquipmentServer.getInstance().addEquipment(this.shoes);
-        EquipmentServer.getInstance().addEquipment(new Weapon("W002", "LeagendLance01", Quality.ORAGE, WeaponType.LANCE, "OrageLance01_png"));
+        EquipmentServer.getInstance().addWeapon(this.sword);
+        EquipmentServer.getInstance().addWeapon(this.lance);
+        EquipmentServer.getInstance().addArmor(this.helment);
+        EquipmentServer.getInstance().addArmor(this.corseler);
+        EquipmentServer.getInstance().addArmor(this.shoes);
+        //EquipmentServer.getInstance().addWeapon(new Weapon("W002","LeagendLance01",Quality.ORAGE,WeaponType.LANCE,"OrageLance01_png"));
         //  console.log(this.user.getFightPower());
         //  console.log(this.hero.getAttack());
         //  console.log(this.hero.getDefence());
@@ -237,7 +242,7 @@ var Main = (function (_super) {
         this.userPanelButton.addEventListener(egret.TouchEvent.TOUCH_BEGIN, function (e) {
             _this.addChild(_this.userPanel);
             _this.userPanel.showHeroInformation(_this.hero);
-            console.log("upbdown");
+            //console.log("upbdown");
         }, this);
         //根据name关键字，异步获取一个json配置文件，name属性请参考resources/resource.json配置文件的内容。
         // Get asynchronously a json configuration file according to name keyword. As for the property of name please refer to the configuration file of resources/resource.json.
@@ -247,7 +252,8 @@ var Main = (function (_super) {
             //this.ifStartMove = true;
             //var tempTile : Tile;
             NPC.npcIsChoose = null;
-            if (_this.userPanelIsOn) {
+            _this.ifFight = false;
+            if (_this.userPanelIsOn && (e.stageX < _this.userPanel.x || e.stageX > _this.userPanel.x + _this.userPanel.width || e.stageY < _this.userPanel.y || e.stageY > _this.userPanel.y + _this.userPanel.height)) {
                 _this.removeChild(_this.userPanel);
                 _this.userPanelIsOn = false;
             }
@@ -266,6 +272,13 @@ var Main = (function (_super) {
                 var npc = _a[_i];
                 if (npc.x / 64 == _this.tileX && npc.y / 64 == _this.tileY)
                     NPC.npcIsChoose = npc;
+            }
+            for (var _b = 0, _c = _this.monsterList; _b < _c.length; _b++) {
+                var monster = _c[_b];
+                if (monster.x / 64 == _this.tileX && monster.y / 64 == _this.tileY) {
+                    _this.ifFight = true;
+                    _this.monsterAttacking = monster;
+                }
             }
             // if(this.map01.getTile(this.tileX,this.tileY).tileData.walkable)
             // {
@@ -301,13 +314,14 @@ var Main = (function (_super) {
                 _this.userPanel.showHeroInformation(_this.hero);
                 _this.userPanelIsOn = true;
             }
-            _this.commandList.addCommand(new FightCommand(_this.Player, _this));
+            //this.commandList.addCommand(new FightCommand(this.Player,this));
             if (_this.canMove && !_this.userPanelIsOn)
                 _this.commandList.addCommand(new WalkCommand(_this));
-            _this.commandList.addCommand(new FightCommand(_this.Player, _this));
+            //this.commandList.addCommand(new FightCommand(this.Player,this));
             if (NPC.npcIsChoose != null)
                 _this.commandList.addCommand(new TalkCommand(_this, NPC.npcIsChoose));
-            _this.commandList.addCommand(new FightCommand(_this.Player, _this));
+            if (_this.ifFight)
+                _this.commandList.addCommand(new FightCommand(_this.Player, _this, _this.monsterAttacking, _this.hero.getAttack()));
             _this.commandList.execute();
         }, this);
         this.PlayerMove();
@@ -528,6 +542,41 @@ var Main = (function (_super) {
         };
         MoveAnimation();
         FramePlus();
+    };
+    /**
+     * 切换描述内容
+     * Switch to described content
+     */
+    // private changeDescription(textfield:egret.TextField, textFlow:Array<egret.ITextElement>):void {
+    //     textfield.textFlow = textFlow;
+    // }
+    p.HeroEquipWeapon = function (weaponId) {
+        var temp = this.hero.getEquipment(EquipementType.WEAPON);
+        if (temp) {
+            this.user.package.InPackage(temp);
+        }
+        this.hero.addWeapon(EquipmentServer.getInstance().getWeapon(weaponId));
+    };
+    p.HeroEquipHelement = function (helmentId) {
+        var temp = this.hero.getEquipment(EquipementType.HELMENT);
+        if (temp) {
+            this.user.package.InPackage(temp);
+        }
+        this.hero.addHelment(EquipmentServer.getInstance().getHelement(helmentId));
+    };
+    p.HeroEquipArmor = function (Id) {
+        var temp = this.hero.getEquipment(EquipementType.CORSELER);
+        if (temp) {
+            this.user.package.InPackage(temp);
+        }
+        this.hero.addCorseler(EquipmentServer.getInstance().getArmor(Id));
+    };
+    p.HeroEquipShoes = function (Id) {
+        var temp = this.hero.getEquipment(EquipementType.SHOES);
+        if (temp) {
+            this.user.package.InPackage(temp);
+        }
+        this.hero.addShoes(EquipmentServer.getInstance().getShoe(Id));
     };
     return Main;
 }(egret.DisplayObjectContainer));

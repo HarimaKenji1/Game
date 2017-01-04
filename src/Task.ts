@@ -48,7 +48,11 @@ class Task extends EventEmitter implements TaskConditionContext,Observer {
     public preTaskListId : string[] = [];
     private taskCondition: TaskCondition;
     private rewardEquipmentId : string;
+    private _tmain : Main;
 
+    public setMain(main : Main){
+        this._tmain = main;
+    }
 
     public getCurrent() {
         return this.current;
@@ -87,6 +91,7 @@ class Task extends EventEmitter implements TaskConditionContext,Observer {
     public submit(){
         if(this.status == TaskStatus.CAN_SUBMIT){
             this.status = TaskStatus.SUBMITTED;
+            this._tmain.HeroEquipWeapon(this.rewardEquipmentId);
             this.notify(this);
         }
     };
@@ -312,8 +317,8 @@ function creatTaskCondition(id: string) {
 
     function creatTask(id: string) {
         var data = {
-            "task_00": { name: "任务01", desc: "点击NPC_1,在NPC_2交任务", total: 1, status: TaskStatus.ACCEPTABLE, condition: "npctalk", fromNpcId: "npc_0", toNpcId: "npc_1" ,preTaskListId : ["null"],rewardEquipmentId:"W001"},
-            "task_01": { name: "任务02", desc: "点击NPC_2,杀死十只怪物后点NPC_2交任务", total: 10, status: TaskStatus.UNACCEPTABLE, condition: "killmonster", fromNpcId: "npc_1", toNpcId: "npc_1" ,preTaskListId : ["task_00"],rewardEquipmentId:"A001"},
+            "task_00": { name: "任务01", desc: "点击NPC_1,在NPC_2交任务", total: 1, status: TaskStatus.ACCEPTABLE, condition: "npctalk", fromNpcId: "npc_0", toNpcId: "npc_1" ,preTaskListId : ["null"],rewardEquipmentId:"W002"},
+            "task_01": { name: "任务02", desc: "点击NPC_2,杀死一只史莱姆后点NPC_2交任务", total: 1, status: TaskStatus.UNACCEPTABLE, condition: "killmonster", fromNpcId: "npc_1", toNpcId: "npc_1" ,preTaskListId : ["task_00"],rewardEquipmentId:"W001"},
 
         }
         var info = data[id];
