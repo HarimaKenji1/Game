@@ -150,8 +150,8 @@ class Main extends egret.DisplayObjectContainer {
     private movingTime = 32;
     private ifOnGoal = false;
     public ifStartMove = false;
-    private playerx : number;
-    private playery : number;
+    public playerx : number;
+    public playery : number;
     private playerBitX : number;
     private playerBitY : number;
     private task01 : Task;
@@ -397,7 +397,12 @@ class Main extends egret.DisplayObjectContainer {
             this.playery = Math.floor(this.Player.PersonBitmap.y / this.tileSize);
             this.playerBitX = this.Player.PersonBitmap.x;
             this.playerBitY = this.Player.PersonBitmap.y;
+            //console.log(this.playerx + "," + this.playery);
             this.map01.startTile = this.map01.getTile(this.playerx,this.playery);
+            
+            this.Player.PersonBitmap.x = this.playerx * 64;
+            this.Player.PersonBitmap.y = this.playery * 64;
+            
             this.currentPath = 0;
             //console.log(playerx + " And " + playery);
             this.EventPoint.x = e.stageX;
@@ -434,8 +439,8 @@ class Main extends egret.DisplayObjectContainer {
                 console.log(this.astar.pathArray[i].x + " And " + this.astar.pathArray[i].y);
             }
             if(this.astar.pathArray.length > 0){
-            this.disx = Math.abs(this.astar.pathArray[this.currentPath].x - this.Player.PersonBitmap.x);
-            this.disy = Math.abs(this.astar.pathArray[this.currentPath].y - this.Player.PersonBitmap.y);
+            this.disx = Math.abs(this.playerx * this.tileSize - this.Player.PersonBitmap.x);
+            this.disy = Math.abs(this.playery * this.tileSize - this.Player.PersonBitmap.y);
             }
             // egret.Ticker.getInstance().register(()=>{
             // if(!this.IfOnGoal(this.map01.getTile(1,0))){
@@ -547,8 +552,16 @@ class Main extends egret.DisplayObjectContainer {
     egret.Ticker.getInstance().register(()=>{
     if(this.ifStartMove && self.ifFindAWay){
        if(self.currentPath < self.astar.pathArray.length - 1){ 
-            var distanceX = self.astar.pathArray[self.currentPath + 1].x - self.astar.pathArray[self.currentPath].x - this.disx;
-            var distanceY = self.astar.pathArray[self.currentPath + 1].y - self.astar.pathArray[self.currentPath].y - this.disy;
+            var distanceX = self.astar.pathArray[self.currentPath + 1].x - self.astar.pathArray[self.currentPath].x ;
+            var distanceY = self.astar.pathArray[self.currentPath + 1].y - self.astar.pathArray[self.currentPath].y ;
+            if(distanceX < 0)
+            distanceX = distanceX - this.disx;
+            else
+            distanceX = distanceX + this.disx;
+            if(distanceY < 0)
+            distanceY = distanceY - this.disy;
+            else
+            distanceY = distanceY + this.disy;
 
             //console.log(this.disx + "And" + this.disy);
 

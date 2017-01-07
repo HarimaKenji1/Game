@@ -277,7 +277,10 @@ var Main = (function (_super) {
             _this.playery = Math.floor(_this.Player.PersonBitmap.y / _this.tileSize);
             _this.playerBitX = _this.Player.PersonBitmap.x;
             _this.playerBitY = _this.Player.PersonBitmap.y;
+            //console.log(this.playerx + "," + this.playery);
             _this.map01.startTile = _this.map01.getTile(_this.playerx, _this.playery);
+            _this.Player.PersonBitmap.x = _this.playerx * 64;
+            _this.Player.PersonBitmap.y = _this.playery * 64;
             _this.currentPath = 0;
             //console.log(playerx + " And " + playery);
             _this.EventPoint.x = e.stageX;
@@ -312,8 +315,8 @@ var Main = (function (_super) {
                 console.log(_this.astar.pathArray[i].x + " And " + _this.astar.pathArray[i].y);
             }
             if (_this.astar.pathArray.length > 0) {
-                _this.disx = Math.abs(_this.astar.pathArray[_this.currentPath].x - _this.Player.PersonBitmap.x);
-                _this.disy = Math.abs(_this.astar.pathArray[_this.currentPath].y - _this.Player.PersonBitmap.y);
+                _this.disx = Math.abs(_this.playerx * _this.tileSize - _this.Player.PersonBitmap.x);
+                _this.disy = Math.abs(_this.playery * _this.tileSize - _this.Player.PersonBitmap.y);
             }
             // egret.Ticker.getInstance().register(()=>{
             // if(!this.IfOnGoal(this.map01.getTile(1,0))){
@@ -394,9 +397,17 @@ var Main = (function (_super) {
         egret.Ticker.getInstance().register(function () {
             if (_this.ifStartMove && self.ifFindAWay) {
                 if (self.currentPath < self.astar.pathArray.length - 1) {
-                    var distanceX = self.astar.pathArray[self.currentPath + 1].x - self.astar.pathArray[self.currentPath].x - _this.disx;
-                    var distanceY = self.astar.pathArray[self.currentPath + 1].y - self.astar.pathArray[self.currentPath].y - _this.disy;
-                    console.log(_this.disx + "And" + _this.disy);
+                    var distanceX = self.astar.pathArray[self.currentPath + 1].x - self.astar.pathArray[self.currentPath].x;
+                    var distanceY = self.astar.pathArray[self.currentPath + 1].y - self.astar.pathArray[self.currentPath].y;
+                    if (distanceX < 0)
+                        distanceX = distanceX - _this.disx;
+                    else
+                        distanceX = distanceX + _this.disx;
+                    if (distanceY < 0)
+                        distanceY = distanceY - _this.disy;
+                    else
+                        distanceY = distanceY + _this.disy;
+                    //console.log(this.disx + "And" + this.disy);
                     if (distanceX > 0) {
                         self.Player.SetRightOrLeftState(new GoRightState(), self);
                     }
